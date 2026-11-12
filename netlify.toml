@@ -1,0 +1,15 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Keep in sync with vite.config.ts.
+# require-corp works with Pyodide on jsDelivr (it sends CORS and
+# Cross-Origin-Resource-Policy: cross-origin) and, unlike "credentialless",
+# is supported by Safari.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Embedder-Policy = "require-corp"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

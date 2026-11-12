@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.netlify/
+*.local
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
+
+# Local Claude Code tooling
+.claude/
