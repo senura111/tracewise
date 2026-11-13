@@ -1,0 +1,19 @@
+cases:
+  - input: "12\n"
+    output: "6\n"
+    visible: true
+  - input: "30\n"
+    output: "10\n"
+    visible: true
+  - input: "4\n"
+    output: "free\n"
+  - input: "5\n"
+    output: "6\n"
+  - input: "17\n"
+    output: "6\n"
+  - input: "18\n"
+    output: "10\n"
+  - input: "64\n"
+    output: "10\n"
+  - input: "65\n"
+    output: "7\n"

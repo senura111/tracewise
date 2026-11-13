@@ -124,6 +124,15 @@ async function loadChallenge(dir: string, id: string, watch: (file: string) => v
   };
 }
 
+/** Loads and validates every challenge folder in `root`, sorted in learning order. */
+export async function loadAllChallenges(root: string, watch: (file: string) => void = () => {}): Promise<Challenge[]> {
+  const entries = await readdir(root, { withFileTypes: true });
+  const all = await Promise.all(
+    entries.filter((e) => e.isDirectory()).map((e) => loadChallenge(path.join(root, e.name), e.name, watch)),
+  );
+  return all.sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
+}
+
 export function challenges(options: { dir?: string } = {}): Plugin {
   let root = "";
 
@@ -140,12 +149,7 @@ export function challenges(options: { dir?: string } = {}): Plugin {
 
     async load(id) {
       if (id !== RESOLVED_ID) return;
-      const watch = (file: string) => this.addWatchFile(file);
-      const entries = await readdir(root, { withFileTypes: true });
-      const all = await Promise.all(
-        entries.filter((e) => e.isDirectory()).map((e) => loadChallenge(path.join(root, e.name), e.name, watch)),
-      );
-      all.sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
+      const all = await loadAllChallenges(root, (file) => this.addWatchFile(file));
       return `export const challenges = ${JSON.stringify(all)};`;
     },
 

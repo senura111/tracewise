@@ -2,7 +2,7 @@
 
 Practise **Python** and **C++** in your browser by solving beginner-friendly challenges. Your code runs on your own machine, with hidden tests, progressive hints, solution walkthroughs, and a friendly explainer that turns error messages into plain language.
 
-> **Status:** Phase 2 is done: Python runs in the browser. Checking code against tests comes in Phase 3. See [PLAN.md](PLAN.md) for the roadmap.
+> **Status:** Phase 3 is done: 14 Python challenges with Submit and marked test results. The friendly error explainer comes in Phase 4. See [PLAN.md](PLAN.md) for the roadmap.
 
 ## Features
 
@@ -12,7 +12,8 @@ Practise **Python** and **C++** in your browser by solving beginner-friendly cha
 - [x] Responsive: side-by-side on desktop, tabs (Problem / Code / Output) on phones
 - [x] Light and dark mode that follow your system setting
 - [x] Run Python in the browser (Pyodide in a Web Worker), with live output, interactive `input()`, a Stop button and a 5-second time limit
-- [ ] Hidden tests with pass/fail marks
+- [x] 14 beginner Python challenges: variables, numbers, conditionals, loops, strings, lists, functions, dictionaries and two security puzzles
+- [x] Submit: hidden tests with ticks and crosses, expected-vs-your-output comparison, and near-miss notes (capital letters, spacing, `5.0` vs `5`, extra or missing lines)
 - [ ] Friendly error explainer: red-pen notes on the line that went wrong
 - [ ] Progress and saved code stored in your browser
 - [ ] C++ support
@@ -44,9 +45,15 @@ Code runs in a Web Worker ([`src/runners/python/`](src/runners/python)), so a sl
 
 - **Stop and the time limit:** the page sets a shared interrupt flag, which raises `KeyboardInterrupt` inside Python, so Python stays loaded. If a program doesn't stop within a second (for example a long calculation inside a built-in function), the worker is killed and a fresh one is loaded. Runs are limited to 5 seconds, not counting time spent waiting for input.
 - **`input()`:** when a program asks for input, a field appears in the output panel and the worker waits on shared memory (`Atomics.wait`) until you press Enter. Stop works while it's waiting.
-- **Test mode** (used by Submit in Phase 3): `input()` reads from the test's input, and prompt text such as `input("Name: ")` is dropped so it doesn't count as output. Asking for more input than the test gives ends the test with a plain-language message.
+- **Test mode** (used by Submit): `input()` reads from the test's input, and prompt text such as `input("Name: ")` is dropped so it doesn't count as output. Asking for more input than the test gives ends the test with a plain-language message.
 - **Limits:** output stops after 10,000 lines or 200,000 characters. Each run starts with fresh variables.
 - **Errors:** code runs as `main.py`, and Pyodide's internal frames are removed from tracebacks, which keeps the line numbers meaningful for beginners.
+
+## How Submit marks code
+
+Submit runs the program once per test in test mode, with a 2-second limit per test. If a test times out, the remaining tests are skipped, so an infinite loop costs 2 seconds rather than 2 seconds per test.
+
+Output is compared line by line ([`src/checker/compare.ts`](src/checker/compare.ts)). Only differences a beginner can't see are forgiven: line-ending style, spaces at the end of a line, and blank lines at the very end. When a test fails, the comparison looks for common near misses and explains them in plain language. Failing examples show expected vs actual output; failing hidden tests say what went wrong, with a button to reveal the details.
 
 ## Run locally
 
@@ -58,16 +65,23 @@ npm run dev        # dev server at http://localhost:5173
 npm run build      # type-check and build to dist/
 npm run preview    # serve the production build at http://localhost:4173
 npm test           # unit tests (Vitest)
+npm run check:solutions   # every reference solution passes, every starter doesn't
 ```
+
+`check:solutions` runs real Python through the `pyodide` npm package in Node, so no Python install is needed. GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the type-check, unit tests, this check and a build on every push.
 
 ## Project structure
 
 ```
 challenges/              challenge content, one folder per challenge
+scripts/                 check-solutions.ts
 src/
-  components/            Layout, CodeEditor, HintNotes, OutputPanel, FilterBar, Tabs, ...
+  checker/               output comparison and marking (Submit)
+  components/            Layout, CodeEditor, HintNotes, OutputPanel, TestResults, FilterBar, Tabs, ...
   content/               challenge types and helpers (data comes from the plugin below)
+  hooks/                 usePythonRun, useSubmission, useMediaQuery
   pages/                 Home, ChallengeList, Challenge, NotFound
+  runners/               language runtimes (Python: Pyodide worker)
   styles/                design tokens and global styles
 vite-plugin-challenges.ts  reads and validates challenges/ at build time
 netlify.toml             build settings and security headers
@@ -112,7 +126,7 @@ cases:
     output: "zab\n"
 ```
 
-Every challenge needs at least one visible test and at least one language folder. If something is missing or invalid, `npm run dev` and `npm run build` stop with a message naming the folder and the problem. Hidden tests are not shown in the page, but they are shipped to the browser, so treat them as practice checks rather than a secure judge.
+Every challenge needs at least one visible test and at least one language folder. If something is missing or invalid, `npm run dev` and `npm run build` stop with a message naming the folder and the problem. Run `npm run check:solutions` to make sure the reference solution passes and the starter doesn't. Write starters so they can't loop forever, and remember that `input()` prompts don't count as output during tests. Hidden tests are not shown in the page, but they are shipped to the browser, so treat them as practice checks rather than a secure judge.
 
 ## License
 

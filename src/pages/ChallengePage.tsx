@@ -9,6 +9,8 @@ import { OutputPanel, type ResultsTab } from "../components/OutputPanel";
 import { Tabs, tabPanelProps } from "../components/Tabs";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { usePythonRun } from "../hooks/usePythonRun";
+import { useSubmission } from "../hooks/useSubmission";
+import { TestResults } from "../components/TestResults";
 import type { RuntimeState } from "../runners/types";
 import { NotFoundPage } from "./NotFoundPage";
 import styles from "./ChallengePage.module.css";
@@ -47,14 +49,37 @@ function Workspace({ challenge }: { challenge: Challenge }) {
   const [code, setCode] = useState(variant.starter);
   const [resultsTab, setResultsTab] = useState<ResultsTab>("output");
   const python = usePythonRun();
-  const busy = python.phase !== "idle";
+  const submission = useSubmission(challenge.tests);
+  const busy = python.phase !== "idle" || submission.marking;
   const canRun = python.runtime.status === "ready" && !busy;
+  const stop = submission.marking ? submission.cancel : python.stop;
+  const busyLabel = submission.marking
+    ? `Marking test ${Math.min(submission.progress.length + 1, challenge.tests.length)} of ${challenge.tests.length}…`
+    : python.phase === "waiting-input"
+      ? "Waiting for your input…"
+      : python.phase === "running"
+        ? "Running…"
+        : null;
 
   const run = () => {
     if (!canRun) return;
     setResultsTab("output");
     if (narrow) setSection("output");
     void python.run(code);
+  };
+
+  const submit = async () => {
+    if (!canRun) return;
+    setResultsTab("tests");
+    if (narrow) setSection("output");
+    const report = await submission.submit(code);
+    // Once solved, the walkthrough is no longer a spoiler.
+    if (report?.solved) setWalkthroughShown(true);
+  };
+
+  const showWalkthrough = () => {
+    setSideTab("walkthrough");
+    if (narrow) setSection("problem");
   };
 
   // Ctrl/Cmd+Enter anywhere on the page (the editor handles it itself first).
@@ -165,7 +190,7 @@ function Workspace({ challenge }: { challenge: Challenge }) {
             </div>
             <div className={styles.buttons}>
               {busy ? (
-                <button type="button" className="btn btn-stop" onClick={python.stop}>
+                <button type="button" className="btn btn-stop" onClick={stop}>
                   Stop
                 </button>
               ) : (
@@ -173,7 +198,7 @@ function Workspace({ challenge }: { challenge: Challenge }) {
                   Run
                 </button>
               )}
-              <button type="button" className="btn btn-secondary" disabled aria-describedby="submit-soon">
+              <button type="button" className="btn btn-secondary" onClick={() => void submit()} disabled={!canRun}>
                 Submit
               </button>
               <button type="button" className="btn btn-ghost" onClick={reset}>
@@ -187,21 +212,30 @@ function Workspace({ challenge }: { challenge: Challenge }) {
             onRun={run}
             ariaLabel={`Python code for ${challenge.title}`}
           />
-          <p id="submit-soon" className={styles.soon}>
-            Submit, which checks your code against the tests, arrives in the next update.
+          <p className={styles.soon}>
+            Run tries your program; Submit checks it against all {challenge.tests.length} tests.
           </p>
         </section>
 
         <section className={styles.output} {...sectionProps("output")}>
           <OutputPanel
-            tests={challenge.tests}
             tab={resultsTab}
             onTabChange={setResultsTab}
             entries={python.entries}
             phase={python.phase}
             result={python.result}
             onSubmitInput={python.submitInput}
-            onStop={narrow ? python.stop : undefined}
+            busyLabel={busyLabel}
+            onStop={narrow ? stop : undefined}
+            testResults={
+              <TestResults
+                tests={challenge.tests}
+                marking={submission.marking}
+                progress={submission.progress}
+                report={submission.report}
+                onShowWalkthrough={showWalkthrough}
+              />
+            }
           />
         </section>
       </div>

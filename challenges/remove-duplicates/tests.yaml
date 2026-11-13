@@ -1,0 +1,15 @@
+cases:
+  - input: "apple banana apple cherry banana\n"
+    output: "apple banana cherry\n"
+    visible: true
+  - input: "a a a\n"
+    output: "a\n"
+    visible: true
+  - input: "one two three\n"
+    output: "one two three\n"
+  - input: "Cat cat CAT cat\n"
+    output: "Cat cat CAT\n"
+  - input: "x\n"
+    output: "x\n"
+  - input: "b a b a c\n"
+    output: "b a c\n"

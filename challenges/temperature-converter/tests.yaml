@@ -1,0 +1,15 @@
+cases:
+  - input: "100\n"
+    output: "212.0\n"
+    visible: true
+  - input: "0\n"
+    output: "32.0\n"
+    visible: true
+  - input: "-40\n"
+    output: "-40.0\n"
+  - input: "37\n"
+    output: "98.6\n"
+  - input: "21.5\n"
+    output: "70.7\n"
+  - input: "15\n"
+    output: "59.0\n"

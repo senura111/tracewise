@@ -1,0 +1,172 @@
+.worksheet {
+  padding: 0.75rem 1.1rem 1rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.score {
+  font-family: var(--font-heading);
+  font-stretch: 115%;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--muted);
+  border: 1.5px solid var(--rule);
+  padding: 0.05rem 0.6rem;
+}
+
+.score[data-state="partial"] {
+  color: var(--redpen);
+  border-color: var(--redpen);
+}
+
+.score[data-state="solved"] {
+  color: var(--pass);
+  border-color: var(--pass);
+}
+
+.status {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+/* ---- Solved stamp -------------------------------------------------------- */
+.solved {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--pass);
+  background: color-mix(in srgb, var(--pass) 8%, transparent);
+}
+
+.solved p {
+  margin: 0;
+}
+
+.stamp {
+  font-family: var(--font-heading);
+  font-stretch: 125%;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--pass);
+  border: 2.5px double var(--pass);
+  padding: 0.15rem 0.6rem;
+  transform: rotate(-4deg);
+}
+
+/* ---- Rows ---------------------------------------------------------------- */
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  border-top: 1px solid var(--rule);
+  padding: 0.4rem 0;
+}
+
+.rowHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.6rem;
+}
+
+.name {
+  font-weight: 700;
+}
+
+.summary {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.reveal {
+  margin-left: auto;
+  font-size: 0.85rem;
+  padding: 0 0.25rem;
+}
+
+.foot {
+  margin: 0.25rem 0 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+/* ---- Details for a failed test ------------------------------------------- */
+.details {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.4rem 0 0.3rem 1.95rem;
+}
+
+.diff {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: 0.5rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.fieldLabel {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.pre {
+  margin: 0;
+  padding: 0.4rem 0.6rem;
+  background: var(--editor-bg);
+  border: 1px solid var(--rule);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.line {
+  display: block;
+  min-height: 1.5em;
+}
+
+.expectedMark {
+  background: var(--editor-active-line);
+}
+
+.actualMark {
+  background: var(--redpen-wash);
+  text-decoration: underline wavy var(--redpen);
+  text-decoration-skip-ink: none;
+  text-underline-offset: 3px;
+}
+
+.missing {
+  color: var(--redpen);
+  font-style: italic;
+}
+
+.traceback {
+  color: var(--redpen);
+}
+
+.note {
+  margin: 0;
+  padding: 0.4rem 0.65rem;
+  border-left: 3px solid var(--redpen);
+  background: var(--surface);
+  font-size: 0.92rem;
+}

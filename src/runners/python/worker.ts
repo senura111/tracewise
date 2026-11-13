@@ -4,11 +4,12 @@
  * through shared memory while this thread waits with Atomics.wait.
  */
 import type { OutputStream, RunMode } from "../types";
+import { BOOTSTRAP, INPUT_EXHAUSTED as EXHAUSTED, INPUT_STOP as STOP, INPUT_UNAVAILABLE as UNAVAILABLE } from "./bootstrap";
 import { parsePythonTraceback } from "./errors";
 import { splitInputLines } from "./input";
 import { DEFAULT_OUTPUT_LIMITS, OutputLimiter } from "./outputLimit";
 import {
-  INPUT_STOP,
+  INPUT_STOP as INPUT_STATE_STOP,
   INPUT_WAITING,
   SIGINT,
   type FromWorker,
@@ -16,32 +17,6 @@ import {
   type WorkerOutcome,
 } from "./protocol";
 import { isPythonError, type LoadPyodide, type PyodideInterface } from "./pyodide-types";
-
-// Sentinels returned by read_line(); the Python side turns them into exceptions.
-const STOP = "\u0000stop";
-const EXHAUSTED = "\u0000exhausted";
-const UNAVAILABLE = "\u0000unavailable";
-
-const BOOTSTRAP = String.raw`
-import builtins, sys
-from _tracewise import read_line as _read_line
-
-class TracewiseNoInput(BaseException):
-    """Raised when input() has nothing to read. Not an Exception subclass,
-    so a learner's 'except Exception' can't swallow it."""
-
-def _tracewise_input(prompt=""):
-    sys.stdout.flush()
-    sys.stderr.flush()
-    line = _read_line(str(prompt))
-    if line.startswith("\0"):
-        if line == "\0stop":
-            raise KeyboardInterrupt
-        raise TracewiseNoInput(line[1:])
-    return line
-
-builtins.input = _tracewise_input
-`;
 
 const FLUSH_STREAMS = "import sys\nsys.stdout.flush()\nsys.stderr.flush()";
 const OUTPUT_FLUSH_MS = 50;
@@ -114,7 +89,7 @@ function readLine(prompt: string): string {
   Atomics.wait(inputState, 0, INPUT_WAITING);
   waitedMs += performance.now() - start;
 
-  if (Atomics.load(inputState, 0) === INPUT_STOP) return STOP;
+  if (Atomics.load(inputState, 0) === INPUT_STATE_STOP) return STOP;
   const length = Atomics.load(inputState, 1);
   // TextDecoder can't read shared memory directly, so copy first.
   return new TextDecoder().decode(inputData.slice(0, length));

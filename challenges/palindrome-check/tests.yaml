@@ -1,0 +1,19 @@
+cases:
+  - input: "racecar\n"
+    output: "yes\n"
+    visible: true
+  - input: "hello\n"
+    output: "no\n"
+    visible: true
+  - input: "Never odd or even\n"
+    output: "yes\n"
+  - input: "Step on no pets\n"
+    output: "yes\n"
+  - input: "A\n"
+    output: "yes\n"
+  - input: "ab\n"
+    output: "no\n"
+  - input: "Taco cat\n"
+    output: "yes\n"
+  - input: "palindrome\n"
+    output: "no\n"

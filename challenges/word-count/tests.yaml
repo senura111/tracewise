@@ -1,0 +1,13 @@
+cases:
+  - input: "the cat and the hat\n"
+    output: "the: 2\ncat: 1\nand: 1\nhat: 1\n"
+    visible: true
+  - input: "go go go\n"
+    output: "go: 3\n"
+    visible: true
+  - input: "a b a c b a\n"
+    output: "a: 3\nb: 2\nc: 1\n"
+  - input: "hello\n"
+    output: "hello: 1\n"
+  - input: "red blue red green blue red\n"
+    output: "red: 3\nblue: 2\ngreen: 1\n"

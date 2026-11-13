@@ -1,0 +1,15 @@
+cases:
+  - input: "Hello World\n"
+    output: "3\n"
+    visible: true
+  - input: "banana\n"
+    output: "3\n"
+    visible: true
+  - input: "AEIOU aeiou\n"
+    output: "10\n"
+  - input: "rhythm\n"
+    output: "0\n"
+  - input: "Programming is fun!\n"
+    output: "5\n"
+  - input: "\n"
+    output: "0\n"

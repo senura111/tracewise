@@ -1,0 +1,15 @@
+cases:
+  - input: "3 9 4\n"
+    output: "Highest: 9\nAverage: 5.3\n"
+    visible: true
+  - input: "10\n"
+    output: "Highest: 10\nAverage: 10.0\n"
+    visible: true
+  - input: "5 5 5 5\n"
+    output: "Highest: 5\nAverage: 5.0\n"
+  - input: "-3 -7 -1\n"
+    output: "Highest: -1\nAverage: -3.7\n"
+  - input: "0 100\n"
+    output: "Highest: 100\nAverage: 50.0\n"
+  - input: "7 2 9 9 1\n"
+    output: "Highest: 9\nAverage: 5.6\n"

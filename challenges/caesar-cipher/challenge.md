@@ -2,7 +2,7 @@
 title: Caesar Cipher
 difficulty: medium
 topics: [strings, loops, security]
-order: 3
+order: 9
 ---
 
 Julius Caesar hid his messages by shifting every letter a fixed number of places along the alphabet. With a shift of 3, `a` becomes `d`, `b` becomes `e`, and so on. Near the end, the alphabet **wraps around**: `x` becomes `a`.

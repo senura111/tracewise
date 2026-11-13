@@ -198,6 +198,27 @@ button {
   font-size: 0.9rem;
 }
 
+.prose table {
+  border-collapse: collapse;
+  margin: 0 0 0.85rem;
+  background: var(--surface);
+}
+
+.prose th,
+.prose td {
+  border: 1px solid var(--rule);
+  padding: 0.3rem 0.75rem;
+  text-align: left;
+}
+
+.prose th {
+  font-family: var(--font-heading);
+  font-stretch: var(--label-stretch);
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  font-size: var(--label-size);
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

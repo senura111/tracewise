@@ -16,6 +16,7 @@
 }
 
 .running {
+  padding: 0.6rem 0.75rem 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -120,46 +121,4 @@ input.input:focus-visible {
 
 .summary[data-tone="stopped"] {
   border-left-color: var(--muted);
-}
-
-/* ---- Tests worksheet ----------------------------------------------------- */
-.worksheet {
-  padding: 0.75rem 1.1rem 1rem;
-}
-
-.head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.4rem;
-}
-
-.score {
-  font-family: var(--font-heading);
-  font-stretch: 115%;
-  font-weight: 800;
-  font-size: 1.1rem;
-  color: var(--muted);
-  border: 1.5px solid var(--rule);
-  padding: 0.05rem 0.6rem;
-}
-
-.rows {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.row {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.4rem 0;
-  border-top: 1px solid var(--rule);
-}
-
-.foot {
-  margin: 0.6rem 0 0;
-  font-size: 0.88rem;
-  color: var(--muted);
 }

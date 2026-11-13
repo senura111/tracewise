@@ -11,6 +11,13 @@ export function formatDuration(ms: number): string {
 const article = (word: string) => (/^[AEIOU]/i.test(word) ? "an" : "a");
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
+export function inputExhaustedMessage(linesProvided: number): string {
+  return (
+    `Your program asked for more input than this test gives (${plural(linesProvided, "line")}). ` +
+    `Call input() once for each line of input the task describes, and no more.`
+  );
+}
+
 /** Beginner-friendly one-line summary of how a run ended. */
 export function describeResult(result: RunResult): { tone: ResultTone; text: string } {
   const restarted = result.restarted ? " Python had to restart to stop it, which takes a moment." : "";
@@ -44,15 +51,8 @@ export function describeResult(result: RunResult): { tone: ResultTone; text: str
           `lines or ${DEFAULT_OUTPUT_LIMITS.maxChars.toLocaleString("en")} characters). ` +
           `Is something printing inside a loop that never ends?`,
       };
-    case "input-exhausted": {
-      const n = result.inputLinesProvided ?? 0;
-      return {
-        tone: "error",
-        text:
-          `Your program asked for more input than this test gives (${plural(n, "line")}). ` +
-          `Call input() once for each line of input the task describes, and no more.`,
-      };
-    }
+    case "input-exhausted":
+      return { tone: "error", text: inputExhaustedMessage(result.inputLinesProvided ?? 0) };
     case "input-unavailable":
       return {
         tone: "error",

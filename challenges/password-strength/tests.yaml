@@ -1,0 +1,17 @@
+cases:
+  - input: "Sunshine2024\n"
+    output: "strong\n"
+    visible: true
+  - input: "password\n"
+    output: "weak\nmissing: an uppercase letter, a digit\n"
+    visible: true
+  - input: "Pass1\n"
+    output: "medium\nmissing: at least 8 characters\n"
+  - input: "12345678\n"
+    output: "weak\nmissing: a lowercase letter, an uppercase letter\n"
+  - input: "ABCdefgh\n"
+    output: "medium\nmissing: a digit\n"
+  - input: "\n"
+    output: "weak\nmissing: at least 8 characters, a lowercase letter, an uppercase letter, a digit\n"
+  - input: "Tr0ub4dor&3\n"
+    output: "strong\n"

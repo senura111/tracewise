@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import type { TestCase } from "../content/types";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import type { ConsoleEntry, RunPhase } from "../hooks/usePythonRun";
 import { describeResult } from "../runners/messages";
 import type { RunResult } from "../runners/types";
-import { Mark } from "./Mark";
 import { Tabs, tabPanelProps } from "./Tabs";
 import styles from "./OutputPanel.module.css";
 
@@ -14,32 +12,32 @@ const TABS = [
 ] as const;
 
 interface OutputPanelProps {
-  tests: TestCase[];
   tab: ResultsTab;
   onTabChange: (tab: ResultsTab) => void;
   entries: ConsoleEntry[];
   phase: RunPhase;
   result: RunResult | null;
   onSubmitInput: (line: string) => void;
-  /** Shown on narrow screens, where the toolbar is on another tab */
+  /** Content of the Tests tab */
+  testResults: ReactNode;
+  /** Shown with a Stop button on narrow screens, where the toolbar is on another tab */
+  busyLabel?: string | null;
   onStop?: () => void;
 }
 
-/** Program output (with inline input) and the marked test worksheet. */
+/** Program output (with inline input) and the test results. */
 export function OutputPanel({
-  tests,
   tab,
   onTabChange,
   entries,
   phase,
   result,
   onSubmitInput,
+  testResults,
+  busyLabel,
   onStop,
 }: OutputPanelProps) {
   const consoleRef = useRef<HTMLDivElement>(null);
-  let example = 0;
-  let hidden = 0;
-  const rows = tests.map((t) => (t.visible ? `Example ${++example}` : `Hidden test ${++hidden}`));
 
   // Keep the newest output in view.
   useEffect(() => {
@@ -54,15 +52,16 @@ export function OutputPanel({
     <div className={styles.panel}>
       <Tabs idBase="results" label="Results" tabs={TABS} selected={tab} onSelect={onTabChange} />
 
+      {onStop && busyLabel && (
+        <div className={styles.running}>
+          <span>{busyLabel}</span>
+          <button type="button" className="btn btn-stop" onClick={onStop}>
+            Stop
+          </button>
+        </div>
+      )}
+
       <div {...tabPanelProps("results", "output", tab)} className={styles.outputPanel}>
-        {onStop && phase !== "idle" && (
-          <div className={styles.running}>
-            <span>{phase === "waiting-input" ? "Waiting for your input…" : "Running…"}</span>
-            <button type="button" className="btn btn-stop" onClick={onStop}>
-              Stop
-            </button>
-          </div>
-        )}
         <div ref={consoleRef} className={styles.console} role="log" aria-label="Program output">
           {isEmpty && <p className={styles.placeholder}>Press Run to see what your program prints.</p>}
           {(entries.length > 0 || phase === "waiting-input") && (
@@ -85,23 +84,7 @@ export function OutputPanel({
         )}
       </div>
 
-      <div {...tabPanelProps("results", "tests", tab)} className={styles.worksheet}>
-        <div className={styles.head}>
-          <span className="label">Test results</span>
-          <span className={styles.score} aria-label="Not marked yet">
-            –/{tests.length}
-          </span>
-        </div>
-        <ol className={styles.rows}>
-          {rows.map((name) => (
-            <li key={name} className={styles.row}>
-              <Mark state="blank" />
-              {name}
-            </li>
-          ))}
-        </ol>
-        <p className={styles.foot}>Submit (coming next) will mark your work against all {tests.length} tests.</p>
-      </div>
+      <div {...tabPanelProps("results", "tests", tab)}>{testResults}</div>
     </div>
   );
 }

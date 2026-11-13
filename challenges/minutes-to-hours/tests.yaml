@@ -1,0 +1,15 @@
+cases:
+  - input: "135\n"
+    output: "2h 15m\n"
+    visible: true
+  - input: "45\n"
+    output: "0h 45m\n"
+    visible: true
+  - input: "60\n"
+    output: "1h 0m\n"
+  - input: "0\n"
+    output: "0h 0m\n"
+  - input: "1000\n"
+    output: "16h 40m\n"
+  - input: "119\n"
+    output: "1h 59m\n"
