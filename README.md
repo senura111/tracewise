@@ -2,6 +2,8 @@
 
 Practise **Python** and **C++** in your browser by solving beginner-friendly challenges. Your code runs on your own machine, with hidden tests, progressive hints, solution walkthroughs, and a friendly explainer that turns error messages into plain language. No install, no account, nothing sent to a server.
 
+**Try it: [tracewise-code.netlify.app](https://tracewise-code.netlify.app)**
+
 ![Writing a solution, reading the error note, fixing it and passing every test](docs/demo.gif)
 
 | An error explained on the line | A C++ compile error, in dark mode |

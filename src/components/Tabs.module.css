@@ -8,7 +8,8 @@
 }
 
 .tab {
-  padding: 0.55rem 0.8rem 0.5rem;
+  /* Narrower sides on very small screens, so the row fits without scrolling */
+  padding: 0.55rem clamp(0.5rem, 2.5vw, 0.8rem) 0.5rem;
   background: none;
   border: 0;
   border-bottom: 3px solid transparent;
