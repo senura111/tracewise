@@ -264,3 +264,33 @@
   font-size: 0.85rem;
   color: var(--muted);
 }
+
+/* Python | C++ switch, styled like the stamped labels */
+.langSwitch {
+  display: inline-flex;
+  border: 1.5px solid var(--ink);
+}
+
+.langSwitch button {
+  padding: 0.1rem 0.55rem;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-heading);
+  font-stretch: var(--label-stretch);
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  font-size: var(--label-size);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.langSwitch button + button {
+  border-left: 1.5px solid var(--ink);
+}
+
+.langSwitch button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper);
+  cursor: default;
+}

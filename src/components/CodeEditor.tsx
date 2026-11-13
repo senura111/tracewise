@@ -13,18 +13,21 @@ import {
 } from "@codemirror/view";
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
 import { HighlightStyle, bracketMatching, indentOnInput, indentUnit, syntaxHighlighting } from "@codemirror/language";
+import { cpp } from "@codemirror/lang-cpp";
 import { python } from "@codemirror/lang-python";
 import { tags as t } from "@lezer/highlight";
+import type { Language } from "../content/types";
 import { splitInlineCode } from "../explain/inline";
 import styles from "./CodeEditor.module.css";
 
 /**
  * A note attached to a line of code (used by the error explainer).
- * "error": red-pen note shown below the line. "fix": a lighter marker for the
- * line where the fix goes. Text may contain `backticks` for code.
+ * "error": red-pen note shown below the line. "warning": the same, in the pen
+ * colour, for compiler warnings. "fix": a lighter marker for the line where
+ * the fix goes. Text may contain `backticks` for code.
  */
 export interface LineNote {
-  kind?: "error" | "fix";
+  kind?: "error" | "warning" | "fix";
   line: number;
   label: string;
   title?: string;
@@ -39,6 +42,8 @@ interface CodeEditorProps {
   ariaLabel: string;
   /** Called on Ctrl+Enter / Cmd+Enter */
   onRun?: () => void;
+  /** Syntax highlighting; fixed when the editor is created */
+  language?: Language;
 }
 
 // ---------------------------------------------------------------------------
@@ -72,7 +77,7 @@ class NoteWidget extends WidgetType {
   }
   toDOM() {
     const outer = document.createElement("div");
-    outer.className = styles.note;
+    outer.className = this.note.kind === "warning" ? `${styles.note} ${styles.warning}` : styles.note;
     outer.setAttribute("role", "note");
     const box = document.createElement("div");
     box.className = styles.noteBox;
@@ -113,6 +118,7 @@ class FixMarker extends WidgetType {
 
 const setNotes = StateEffect.define<LineNote[]>();
 const noteLine = Decoration.line({ class: styles.noteLine });
+const warningLine = Decoration.line({ class: styles.warningLine });
 const fixLine = Decoration.line({ class: styles.fixLine });
 
 function buildNotes(state: EditorState, notes: LineNote[]): DecorationSet {
@@ -124,7 +130,7 @@ function buildNotes(state: EditorState, notes: LineNote[]): DecorationSet {
       builder.add(line.from, line.from, fixLine);
       builder.add(line.to, line.to, Decoration.widget({ widget: new FixMarker(note.label), side: 1 }));
     } else {
-      builder.add(line.from, line.from, noteLine);
+      builder.add(line.from, line.from, note.kind === "warning" ? warningLine : noteLine);
       builder.add(line.to, line.to, Decoration.widget({ widget: new NoteWidget(note), block: true, side: 1 }));
     }
   }
@@ -185,7 +191,7 @@ const MOD_KEY = /Mac|iPhone|iPad/.test(navigator.userAgent) ? "Cmd" : "Ctrl";
 
 const NO_NOTES: LineNote[] = [];
 
-export function CodeEditor({ value, onChange, notes = NO_NOTES, ariaLabel, onRun }: CodeEditorProps) {
+export function CodeEditor({ value, onChange, notes = NO_NOTES, ariaLabel, onRun, language = "python" }: CodeEditorProps) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const onChangeRef = useRef(onChange);
@@ -222,7 +228,7 @@ export function CodeEditor({ value, onChange, notes = NO_NOTES, ariaLabel, onRun
           ),
           // Tab indents; Esc then Tab moves focus out of the editor.
           keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
-          python(),
+          language === "cpp" ? cpp() : python(),
           syntaxHighlighting(highlight),
           theme,
           notesField,

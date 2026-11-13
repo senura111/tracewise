@@ -1,15 +1,17 @@
 import { useState } from "react";
 import type { Comparison } from "../checker/compare";
 import { TEST_TIME_LIMIT_MS, testNames, type SubmissionReport, type TestReport } from "../checker/submit";
-import type { TestCase } from "../content/types";
+import type { Language, TestCase } from "../content/types";
 import { inputExhaustedMessage } from "../runners/messages";
-import { explainError } from "../explain/explain";
+import { explainFor } from "../explain/explain";
+import { errorLabel } from "../explain/labels";
 import { ErrorExplanation } from "./ErrorExplanation";
 import { Mark, type MarkState } from "./Mark";
 import styles from "./TestResults.module.css";
 
 interface TestResultsProps {
   tests: TestCase[];
+  language: Language;
   /** The code that was marked, for explaining errors */
   code: string;
   marking: boolean;
@@ -19,7 +21,7 @@ interface TestResultsProps {
 }
 
 /** The marked worksheet: a tick or cross per test, with details for failures. */
-export function TestResults({ tests, code, marking, progress, report, onShowWalkthrough }: TestResultsProps) {
+export function TestResults({ tests, language, code, marking, progress, report, onShowWalkthrough }: TestResultsProps) {
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
   const names = testNames(tests);
   const reports = report?.reports ?? progress;
@@ -52,7 +54,9 @@ export function TestResults({ tests, code, marking, progress, report, onShowWalk
         <p className={styles.status} role="status">
           {report.cancelled
             ? "Marking stopped."
-            : report.reports.some((r) => r.outcome.status === "timeout")
+            : report.reports.some((r) => r.outcome.status === "not-run" && r.outcome.reason === "compile-error")
+              ? "The code didn't compile, so the tests couldn't run. Fix the compile error first."
+              : report.reports.some((r) => r.outcome.status === "timeout")
               ? `${report.passed} of ${report.total} tests passed. One test ran too long, so the rest weren't run. Fix that first.`
               : `${report.passed} of ${report.total} tests passed. Fix the crossed-out ones and submit again.`}
         </p>
@@ -80,7 +84,7 @@ export function TestResults({ tests, code, marking, progress, report, onShowWalk
                   </button>
                 )}
               </div>
-              {entry && needsDetails(entry) && showDetails && <Details report={entry} code={code} seconds={seconds} />}
+              {entry && needsDetails(entry) && showDetails && <Details report={entry} language={language} code={code} seconds={seconds} />}
             </li>
           );
         })}
@@ -137,7 +141,7 @@ function summary({ outcome }: TestReport, seconds: number): string {
     case "failed":
       return "Wrong output";
     case "error":
-      return `${outcome.error.type}${outcome.error.line ? ` on line ${outcome.error.line}` : ""}`;
+      return `${errorLabel(outcome.error.type)}${outcome.error.line ? ` on line ${outcome.error.line}` : ""}`;
     case "timeout":
       return `Still running after ${seconds} s`;
     case "input-exhausted":
@@ -147,11 +151,25 @@ function summary({ outcome }: TestReport, seconds: number): string {
     case "crashed":
       return "Python stopped unexpectedly";
     case "not-run":
-      return outcome.reason === "timeout" ? "Not run: an earlier test ran too long" : "Not run";
+      return outcome.reason === "timeout"
+        ? "Not run: an earlier test ran too long"
+        : outcome.reason === "compile-error"
+          ? "Not run: the code didn't compile"
+          : "Not run";
   }
 }
 
-function Details({ report, code, seconds }: { report: TestReport; code: string; seconds: number }) {
+function Details({
+  report,
+  language,
+  code,
+  seconds,
+}: {
+  report: TestReport;
+  language: Language;
+  code: string;
+  seconds: number;
+}) {
   const { outcome, test } = report;
   return (
     <div className={styles.details}>
@@ -164,7 +182,7 @@ function Details({ report, code, seconds }: { report: TestReport; code: string; 
         <p className={styles.note}>{outcome.comparison.note}</p>
       )}
       {outcome.status === "error" && (
-        <ErrorExplanation explanation={explainError(outcome.error, code)} error={outcome.error} />
+        <ErrorExplanation explanation={explainFor(language, outcome.error, code)} error={outcome.error} />
       )}
       {outcome.status === "timeout" && (
         <p className={styles.note}>

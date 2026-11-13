@@ -1,19 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useParams, useSearchParams } from "react-router";
 import { challengeNumber, challenges, getChallenge } from "../content/challenges";
-import type { Challenge, TestCase } from "../content/types";
+import type { Challenge, Language, TestCase } from "../content/types";
 import { CodeEditor, type LineNote } from "../components/CodeEditor";
-import { explainError } from "../explain/explain";
+import { explainFor, explainWarnings } from "../explain/explain";
 import { notesFor } from "../explain/notes";
 import { HintNotes } from "../components/HintNotes";
 import { DifficultyBadge, TopicTags } from "../components/Labels";
 import { OutputPanel, type ResultsTab } from "../components/OutputPanel";
 import { Tabs, tabPanelProps } from "../components/Tabs";
 import { useMediaQuery } from "../hooks/useMediaQuery";
-import { usePythonRun } from "../hooks/usePythonRun";
+import { useRun } from "../hooks/useRun";
 import { useSubmission } from "../hooks/useSubmission";
 import { progressStore, useChallengeProgress } from "../progress/useProgress";
 import { TestResults } from "../components/TestResults";
+import { LANGUAGE_NAMES } from "../runners";
 import type { RuntimeState } from "../runners/types";
 import { NotFoundPage } from "./NotFoundPage";
 import styles from "./ChallengePage.module.css";
@@ -35,81 +36,107 @@ const pad = (n: number) => String(n).padStart(2, "0");
 
 export function ChallengePage() {
   const { id = "" } = useParams();
+  const [params, setParams] = useSearchParams();
   const challenge = getChallenge(id);
   if (!challenge) return <NotFoundPage message={`There's no challenge called "${id}".`} />;
-  if (!challenge.variants.python) return <NotFoundPage message="This challenge doesn't have a Python version yet." />;
-  // A new key resets all state (code, hints, tabs) when moving between challenges.
-  return <Workspace key={challenge.id} challenge={challenge} />;
+
+  // The language lives in the URL (?lang=cpp); fall back to one the challenge has.
+  const wanted: Language = params.get("lang") === "cpp" ? "cpp" : "python";
+  const language: Language = challenge.variants[wanted] ? wanted : challenge.variants.python ? "python" : "cpp";
+  const switchLanguage = (next: Language) => setParams(next === "python" ? {} : { lang: next }, { replace: true });
+
+  // A new key resets all state (code, hints, tabs) when moving between challenges or languages.
+  return (
+    <Workspace
+      key={`${challenge.id}:${language}`}
+      challenge={challenge}
+      language={language}
+      onLanguageChange={switchLanguage}
+    />
+  );
 }
 
-const LANGUAGE = "python";
+interface WorkspaceProps {
+  challenge: Challenge;
+  language: Language;
+  onLanguageChange: (language: Language) => void;
+}
 
-function Workspace({ challenge }: { challenge: Challenge }) {
-  const variant = challenge.variants.python!;
+function Workspace({ challenge, language, onLanguageChange }: WorkspaceProps) {
+  const variant = challenge.variants[language]!;
   // Below 64rem the three sections become tabs instead of side-by-side columns.
   const narrow = useMediaQuery("(max-width: 63.99rem)");
   const [section, setSection] = useState<Section>("problem");
   const [sideTab, setSideTab] = useState<SideTab>("statement");
 
   // ---- Saved progress ------------------------------------------------------------
-  const progress = useChallengeProgress(challenge.id, LANGUAGE);
+  const progress = useChallengeProgress(challenge.id, language);
   const solved = progress.solvedAt !== undefined;
   // Once solved, the walkthrough is no longer a spoiler.
   const walkthroughShown = progress.walkthroughShown || solved;
-  const [code, setCode] = useState(() => progressStore.get(challenge.id, LANGUAGE).code ?? variant.starter);
+  const [code, setCode] = useState(() => progressStore.get(challenge.id, language).code ?? variant.starter);
 
   useEffect(() => {
-    progressStore.markOpened(challenge.id, LANGUAGE);
+    progressStore.markOpened(challenge.id, language);
   }, [challenge.id]);
 
   const [resultsTab, setResultsTab] = useState<ResultsTab>("output");
-  const python = usePythonRun();
-  const submission = useSubmission(challenge.tests);
-  const busy = python.phase !== "idle" || submission.marking;
-  const canRun = python.runtime.status === "ready" && !busy;
-  const stop = submission.marking ? submission.cancel : python.stop;
+  const execution = useRun(language);
+  const submission = useSubmission(challenge.tests, language);
+  const busy = execution.phase !== "idle" || submission.marking;
+  // Running is allowed while the runtime is still loading: the run waits for it.
+  const canRun = execution.runtime.status !== "failed" && !busy;
+  const stop = submission.marking ? submission.cancel : execution.stop;
   const busyLabel = submission.marking
     ? `Marking test ${Math.min(submission.progress.length + 1, challenge.tests.length)} of ${challenge.tests.length}…`
-    : python.phase === "waiting-input"
+    : execution.phase === "compiling"
+      ? "Compiling…"
+      : execution.phase === "waiting-input"
       ? "Waiting for your input…"
-      : python.phase === "running"
+      : execution.phase === "running"
         ? "Running…"
         : null;
 
   // ---- Error explanations ------------------------------------------------------
   const [notes, setNotes] = useState<LineNote[]>([]);
-  const runError = python.result?.error ?? null;
+  const runError = execution.result?.error ?? null;
   const runExplanation = useMemo(
-    () => (runError ? explainError(runError, python.ranCode) : null),
-    [runError, python.ranCode],
+    () => (runError ? explainFor(language, runError, execution.ranCode) : null),
+    [language, runError, execution.ranCode],
+  );
+  // C++: compiler warnings that have an explanation (others would just be noise).
+  const runWarnings = useMemo(
+    () => explainWarnings(language, execution.result?.warnings, execution.ranCode),
+    [language, execution.result, execution.ranCode],
   );
 
-  // A finished Run: show its error (if any) on the code.
+  // A finished Run: show its error, or its warnings, on the code.
   useEffect(() => {
-    setNotes(runExplanation && runError ? notesFor(runExplanation, runError) : []);
-  }, [runExplanation, runError]);
+    if (runExplanation && runError) setNotes(notesFor(runExplanation, runError));
+    else setNotes(runWarnings.flatMap(({ warning, explanation }) => notesFor(explanation, warning)));
+  }, [runExplanation, runError, runWarnings]);
 
   // A finished Submit: show the first test error (if any) on the code.
   useEffect(() => {
     if (!submission.report) return;
     const first = submission.report.reports.find((r) => r.outcome.status === "error")?.outcome;
     setNotes(
-      first?.status === "error" ? notesFor(explainError(first.error, submission.submittedCode), first.error) : [],
+      first?.status === "error" ? notesFor(explainFor(language, first.error, submission.submittedCode), first.error) : [],
     );
-  }, [submission.report, submission.submittedCode]);
+  }, [language, submission.report, submission.submittedCode]);
 
   // Notes describe the code as it was run, so editing clears them.
   const changeCode = (value: string) => {
     setCode(value);
     setNotes([]);
-    progressStore.saveCode(challenge.id, LANGUAGE, value, variant.starter);
+    progressStore.saveCode(challenge.id, language, value, variant.starter);
   };
 
   const run = () => {
     if (!canRun) return;
     setResultsTab("output");
     if (narrow) setSection("output");
-    void python.run(code);
+    void execution.run(code);
   };
 
   const submit = async () => {
@@ -118,7 +145,7 @@ function Workspace({ challenge }: { challenge: Challenge }) {
     if (narrow) setSection("output");
     const report = await submission.submit(code);
     if (report && !report.cancelled) {
-      progressStore.recordSubmission(challenge.id, LANGUAGE, report.passed, report.total);
+      progressStore.recordSubmission(challenge.id, language, report.passed, report.total);
     }
   };
 
@@ -201,7 +228,7 @@ function Workspace({ challenge }: { challenge: Challenge }) {
               <HintNotes
                 hints={variant.hintsHtml}
                 shown={progress.hintsShown}
-                onShowMore={(count) => progressStore.setHintsShown(challenge.id, LANGUAGE, count)}
+                onShowMore={(count) => progressStore.setHintsShown(challenge.id, language, count)}
               />
             </aside>
           </div>
@@ -219,7 +246,7 @@ function Workspace({ challenge }: { challenge: Challenge }) {
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  onClick={() => progressStore.setWalkthroughShown(challenge.id, LANGUAGE)}
+                  onClick={() => progressStore.setWalkthroughShown(challenge.id, language)}
                 >
                   Reveal the walkthrough
                 </button>
@@ -246,8 +273,8 @@ function Workspace({ challenge }: { challenge: Challenge }) {
         <section className={styles.code} {...sectionProps("code")}>
           <div className={styles.toolbar}>
             <div className={styles.runtime}>
-              <span className={`label ${styles.language}`}>Python</span>
-              <RuntimeStatus state={python.runtime} onRetry={python.retryLoad} />
+              <LanguageSwitch challenge={challenge} language={language} onChange={onLanguageChange} />
+              <RuntimeStatus language={language} state={execution.runtime} onRetry={execution.retryLoad} />
             </div>
             <div className={styles.buttons}>
               {busy ? (
@@ -272,7 +299,8 @@ function Workspace({ challenge }: { challenge: Challenge }) {
             onChange={changeCode}
             notes={notes}
             onRun={run}
-            ariaLabel={`Python code for ${challenge.title}`}
+            language={language}
+            ariaLabel={`${LANGUAGE_NAMES[language]} code for ${challenge.title}`}
           />
           <p className={styles.soon}>
             Run tries your program; Submit checks it against all {challenge.tests.length} tests.
@@ -283,16 +311,18 @@ function Workspace({ challenge }: { challenge: Challenge }) {
           <OutputPanel
             tab={resultsTab}
             onTabChange={setResultsTab}
-            entries={python.entries}
-            phase={python.phase}
-            result={python.result}
+            entries={execution.entries}
+            phase={execution.phase}
+            result={execution.result}
             explanation={runExplanation}
-            onSubmitInput={python.submitInput}
+            warnings={runWarnings}
+            onSubmitInput={execution.submitInput}
             busyLabel={busyLabel}
             onStop={narrow ? stop : undefined}
             testResults={
               <TestResults
                 tests={challenge.tests}
+                language={language}
                 code={submission.submittedCode}
                 marking={submission.marking}
                 progress={submission.progress}
@@ -307,13 +337,51 @@ function Workspace({ challenge }: { challenge: Challenge }) {
   );
 }
 
-function RuntimeStatus({ state, onRetry }: { state: RuntimeState; onRetry: () => void }) {
+function LanguageSwitch({
+  challenge,
+  language,
+  onChange,
+}: {
+  challenge: Challenge;
+  language: Language;
+  onChange: (language: Language) => void;
+}) {
+  const languages = (["python", "cpp"] as const).filter((l) => challenge.variants[l]);
+  return (
+    <div className={styles.langSwitch} role="group" aria-label="Language">
+      {languages.map((l) => (
+        <button key={l} type="button" aria-pressed={l === language} onClick={() => l !== language && onChange(l)}>
+          {LANGUAGE_NAMES[l]}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** Seconds since the component started showing, ticking once a second. */
+function useElapsedSeconds(active: boolean): number {
+  const [seconds, setSeconds] = useState(0);
+  useEffect(() => {
+    if (!active) return;
+    const started = Date.now();
+    setSeconds(0);
+    const timer = setInterval(() => setSeconds(Math.floor((Date.now() - started) / 1000)), 1000);
+    return () => clearInterval(timer);
+  }, [active]);
+  return seconds;
+}
+
+function RuntimeStatus({ language, state, onRetry }: { language: Language; state: RuntimeState; onRetry: () => void }) {
+  const loading = state.status === "idle" || state.status === "loading";
+  const seconds = useElapsedSeconds(loading);
   switch (state.status) {
     case "idle":
     case "loading":
       return (
         <span className={styles.status} role="status">
-          Loading Python… the first time takes a few seconds
+          {language === "cpp"
+            ? `Preparing the C++ compiler… ${seconds} s (takes about 20–30 s on each visit)`
+            : "Loading Python… the first time takes a few seconds"}
         </span>
       );
     case "ready":
@@ -325,7 +393,7 @@ function RuntimeStatus({ state, onRetry }: { state: RuntimeState; onRetry: () =>
     case "failed":
       return (
         <span className={`${styles.status} ${styles.statusFailed}`} role="alert">
-          Python couldn't load. Check your connection.{" "}
+          {language === "cpp" ? "The C++ compiler" : "Python"} couldn't load. Check your connection.{" "}
           <button type="button" className="btn btn-ghost" onClick={onRetry}>
             Try again
           </button>

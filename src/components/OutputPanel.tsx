@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import type { Explanation } from "../explain/types";
-import type { ConsoleEntry, RunPhase } from "../hooks/usePythonRun";
+import type { ConsoleEntry, RunPhase } from "../hooks/useRun";
 import { ErrorExplanation } from "./ErrorExplanation";
 import { describeResult } from "../runners/messages";
-import type { RunResult } from "../runners/types";
+import type { CodeError, RunResult } from "../runners/types";
 import { Tabs, tabPanelProps } from "./Tabs";
 import styles from "./OutputPanel.module.css";
 
@@ -21,6 +21,8 @@ interface OutputPanelProps {
   result: RunResult | null;
   /** Explanation of the run's error, if it had one */
   explanation: Explanation | null;
+  /** C++: compiler warnings worth showing, already explained */
+  warnings?: { warning: CodeError; explanation: Explanation }[];
   onSubmitInput: (line: string) => void;
   /** Content of the Tests tab */
   testResults: ReactNode;
@@ -37,6 +39,7 @@ export function OutputPanel({
   phase,
   result,
   explanation,
+  warnings = [],
   onSubmitInput,
   testResults,
   busyLabel,
@@ -79,12 +82,17 @@ export function OutputPanel({
               {phase === "waiting-input" && <InputLine onSubmit={onSubmitInput} />}
             </pre>
           )}
-          {phase === "running" && entries.length === 0 && <p className={styles.placeholder}>Running…</p>}
+          {(phase === "running" || phase === "compiling") && entries.length === 0 && (
+            <p className={styles.placeholder}>{phase === "compiling" ? "Compiling…" : "Running…"}</p>
+          )}
           {phase === "idle" && result && entries.length === 0 && (
             <p className={styles.placeholder}>Nothing was printed.</p>
           )}
         </div>
         {result?.error && explanation && <ErrorExplanation explanation={explanation} error={result.error} />}
+        {warnings.map(({ warning, explanation: w }, i) => (
+          <ErrorExplanation key={i} explanation={w} error={warning} />
+        ))}
         {summary && result?.status !== "error" && (
           <p className={styles.summary} data-tone={summary.tone} role="status">
             {summary.text}

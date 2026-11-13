@@ -109,3 +109,19 @@
   font-weight: 700;
   color: var(--redpen);
 }
+
+/* Compiler warnings: the same note, in the pen colour instead of red */
+.warningLine {
+  background-color: var(--editor-active-line) !important;
+  text-decoration: underline wavy var(--accent);
+  text-decoration-skip-ink: none;
+  text-underline-offset: 4px;
+}
+
+.warning .noteBox {
+  border-left-color: var(--accent);
+}
+
+.warning .noteLabel {
+  color: var(--accent);
+}

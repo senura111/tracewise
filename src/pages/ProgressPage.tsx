@@ -1,9 +1,10 @@
 import { useRef, useState, type ChangeEvent } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Mark, type MarkState } from "../components/Mark";
 import { challengeNumber, challenges, groupByMainTopic } from "../content/challenges";
-import type { Challenge } from "../content/types";
+import { LANGUAGES, type Challenge, type Language } from "../content/types";
+import { LANGUAGE_NAMES } from "../runners";
 import type { ProgressData } from "../progress/store";
 import { bestStreak, currentStreak, logbookWeeks } from "../progress/streak";
 import { exportFileName, exportProgress, readImport, type ProgressSummary } from "../progress/transfer";
@@ -20,8 +21,11 @@ type Dialog = { kind: "reset" } | { kind: "import"; data: ProgressData; summary:
 export function ProgressPage() {
   const data = useProgressData();
   const today = new Date();
-  const list = challenges.filter((c) => c.variants.python);
-  const progressOf = (c: Challenge) => data.challenges[c.id]?.python;
+  const [params, setParams] = useSearchParams();
+  const language: Language = params.get("language") === "cpp" ? "cpp" : "python";
+  const list = challenges.filter((c) => c.variants[language]);
+  const progressOf = (c: Challenge) => data.challenges[c.id]?.[language];
+  const linkTo = (c: Challenge) => `/challenges/${c.id}${language === "cpp" ? "?lang=cpp" : ""}`;
   const solved = list
     .filter((c) => progressOf(c)?.solvedAt)
     .sort((a, b) => progressOf(b)!.solvedAt!.localeCompare(progressOf(a)!.solvedAt!));
@@ -71,6 +75,18 @@ export function ProgressPage() {
 
       <header className={styles.head}>
         <h1 className={styles.h1}>Progress</h1>
+        <div className={styles.langSwitch} role="group" aria-label="Language">
+          {LANGUAGES.map((l) => (
+            <button
+              key={l}
+              type="button"
+              aria-pressed={l === language}
+              onClick={() => setParams(l === "python" ? {} : { language: l }, { replace: true })}
+            >
+              {LANGUAGE_NAMES[l]}
+            </button>
+          ))}
+        </div>
         <div className={styles.actions}>
           <button type="button" className="btn btn-secondary" onClick={exportFile}>
             Export
@@ -115,7 +131,7 @@ export function ProgressPage() {
           <ol className={styles.boxes} aria-label="Every challenge">
             {list.map((c) => (
               <li key={c.id}>
-                <Link to={`/challenges/${c.id}`} title={c.title} className={styles.box}>
+                <Link to={linkTo(c)} title={c.title} className={styles.box}>
                   <Mark state={MARKS[statusOf(progressOf(c))]} label={`${c.title}: ${statusOf(progressOf(c))}`} />
                 </Link>
               </li>
@@ -204,7 +220,7 @@ export function ProgressPage() {
         </h2>
         {solved.length === 0 ? (
           <p className={styles.small}>
-            Nothing solved yet. <Link to={`/challenges/${list[0]?.id}`}>Start with challenge 1</Link>.
+            Nothing solved yet. {list[0] && <Link to={linkTo(list[0])}>Start with challenge 1</Link>}.
           </p>
         ) : (
           <div className={styles.tableWrap}>
@@ -225,12 +241,12 @@ export function ProgressPage() {
                   <tr key={c.id}>
                     <td className={styles.num}>{String(challengeNumber(c)).padStart(2, "0")}</td>
                     <td>
-                      <Link to={`/challenges/${c.id}`}>{c.title}</Link>
+                      <Link to={linkTo(c)}>{c.title}</Link>
                     </td>
                     <td>{shortDate(p.solvedAt!)}</td>
                     <td className={styles.num}>{p.attempts}</td>
                     <td className={styles.num}>
-                      {Math.min(p.hintsShown, c.variants.python!.hintsHtml.length)}/{c.variants.python!.hintsHtml.length}
+                      {Math.min(p.hintsShown, c.variants[language]!.hintsHtml.length)}/{c.variants[language]!.hintsHtml.length}
                     </td>
                   </tr>
                 );

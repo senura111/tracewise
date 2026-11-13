@@ -2,7 +2,7 @@
 
 Practise **Python** and **C++** in your browser by solving beginner-friendly challenges. Your code runs on your own machine, with hidden tests, progressive hints, solution walkthroughs, and a friendly explainer that turns error messages into plain language.
 
-> **Status:** Phase 5 is done: progress and code are saved in your browser, with a Progress page, streaks and export/import. C++ support comes in Phase 6. See [PLAN.md](PLAN.md) for the roadmap.
+> **Status:** Phase 6 is done: all 14 challenges can be solved in Python or C++, with C++ compiled in your browser by Clang. Polish and release come in Phase 7. See [PLAN.md](PLAN.md) for the roadmap.
 
 ## Features
 
@@ -19,7 +19,7 @@ Practise **Python** and **C++** in your browser by solving beginner-friendly cha
 - [x] Progress saved in your browser: your code, solved marks, hints revealed, and a streak of days you submitted
 - [x] Progress page with per-topic progress, a 6-week logbook, export to a file, import and reset
 - [x] Solved ticks and a Not solved / Solved filter in the challenge list; "Continue where you left off" on the home page
-- [ ] C++ support
+- [x] C++ support: a real Clang compiler in your browser, C++ versions of all 14 challenges, and plain-language notes for compile errors, warnings and crashes
 
 ## Design
 
@@ -37,10 +37,21 @@ All colours are CSS custom properties in [`src/styles/tokens.css`](src/styles/to
 | Editor | CodeMirror 6, wrapped in a small component ([`CodeEditor.tsx`](src/components/CodeEditor.tsx)) |
 | Fonts | Self-hosted via Fontsource (no requests to third parties) |
 | Python runtime | Pyodide 314 (Python 3.14) from jsDelivr, in a Web Worker |
+| C++ compiler | Clang 22 built for WebAssembly ([YoWASP](https://yowasp.org/)) from jsDelivr, programs run with [`browser_wasi_shim`](https://github.com/bjorn3/browser_wasi_shim) |
 | Tests | Vitest |
 | Hosting | Netlify (static) |
 
 The site is served with `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp` (see [`netlify.toml`](netlify.toml) and [`vite.config.ts`](vite.config.ts)). These headers enable `SharedArrayBuffer`, which the Python runtime uses for interactive `input()` and for stopping runaway code.
+
+## How C++ runs
+
+C++ is compiled by a real compiler, Clang 22, built for WebAssembly by [YoWASP](https://yowasp.org/) and loaded from jsDelivr only when you open a challenge in C++ ([`src/runners/cpp/`](src/runners/cpp)).
+
+- **Two workers.** A compiler worker keeps Clang loaded while you move between challenges. Each run gets a fresh program worker, which Stop or the time limit simply terminates, so stopping can never fail.
+- **Start-up.** About 18 MB to download, then the browser has to prepare a 75 MB WebAssembly module. That takes around 20–30 s on a visit, so it starts in the background as soon as a C++ challenge opens, and Run waits for it if needed. After that, compiling takes about 1.5–2 s, and Submit compiles once for all tests.
+- **Compile flags:** `-std=c++20 -O0 -fno-exceptions -Wall`. `-O0` keeps programs doing exactly what the code says. Exceptions aren't supported by this toolchain, so `throw`/`try` give a clear compile error.
+- **Input and output** use the same shared-memory approach as Python: `cin` and `getline` wait for a line you type, and output streams as the program runs. In tests, everything the program prints counts, including prompts, and a near-miss note explains this.
+- **Errors.** Clang's messages are parsed into errors and warnings. Errors and crashes get red-pen notes; a few warnings that usually mean a beginner's mistake (`if (x = 5)`, a variable with no starting value, `"Age: " + age`) get blue notes, and the rest are hidden.
 
 ## How Python runs
 
@@ -104,10 +115,10 @@ npm run build      # type-check and build to dist/
 npm run preview    # serve the production build at http://localhost:4173
 npm test           # unit tests (Vitest)
 npm run check:solutions   # every reference solution passes, every starter doesn't
-npm run check:explainer   # every explainer rule matches real Python errors
+npm run check:explainer   # every explainer rule matches real Python and Clang errors
 ```
 
-Both checks run real Python through the `pyodide` npm package in Node, so no Python install is needed. GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the type-check, unit tests, both checks and a build on every push.
+Both checks run the real languages in Node: Python through the `pyodide` npm package and C++ through `@yowasp/clang` (a development-only package of about 105 MB), so no Python or C++ install is needed. GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the type-check, unit tests, both checks and a build on every push.
 
 ## Project structure
 
@@ -122,7 +133,7 @@ src/
   content/               challenge types and helpers (data comes from the plugin below)
   hooks/                 usePythonRun, useSubmission, useMediaQuery
   pages/                 Home, ChallengeList, Challenge, Progress, NotFound
-  runners/               language runtimes (Python: Pyodide worker)
+  runners/               language runtimes (Python: Pyodide worker; C++: Clang + program workers)
   styles/                design tokens and global styles
 vite-plugin-challenges.ts  reads and validates challenges/ at build time
 netlify.toml             build settings and security headers
@@ -136,12 +147,16 @@ Create a folder in `challenges/`. The folder name becomes the URL (`#/challenges
 challenges/caesar-cipher/
 ├─ challenge.md        front matter + description (Markdown)
 ├─ tests.yaml          input → expected output, shared by all languages
-└─ python/
-   ├─ starter.py       code the editor starts with
-   ├─ solution.py      reference solution
-   ├─ hints.md         hints separated by --- lines, smallest nudge first
-   └─ walkthrough.md   step-by-step explanation of a solution
+├─ python/
+│  ├─ starter.py       code the editor starts with
+│  ├─ solution.py      reference solution
+│  ├─ hints.md         hints separated by --- lines, smallest nudge first
+│  └─ walkthrough.md   step-by-step explanation of a solution
+└─ cpp/
+   └─ starter.cpp, solution.cpp, hints.md, walkthrough.md
 ```
+
+Each language folder is optional, but every challenge needs at least one. C++ starters and solutions read input with `getline` or `cin` and must not print prompts.
 
 `challenge.md`:
 

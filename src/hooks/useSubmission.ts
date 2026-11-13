@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { submitCode, type SubmissionReport, type TestReport } from "../checker/submit";
-import type { TestCase } from "../content/types";
-import { getPythonRunner } from "../runners/python/PythonRunner";
+import type { Language, TestCase } from "../content/types";
+import { getRunner } from "../runners";
 
 /** Submit: marks the code against every test, with live progress and Stop. */
-export function useSubmission(tests: TestCase[]) {
-  const runner = getPythonRunner();
+export function useSubmission(tests: TestCase[], language: Language) {
+  const runner = getRunner(language);
   const [marking, setMarking] = useState(false);
   const [progress, setProgress] = useState<TestReport[]>([]);
   const [report, setReport] = useState<SubmissionReport | null>(null);

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { getPythonRunner } from "../runners/python/PythonRunner";
+import type { Language } from "../content/types";
+import { getRunner } from "../runners";
 import type { RunResult } from "../runners/types";
 
 export interface ConsoleEntry {
@@ -7,11 +8,11 @@ export interface ConsoleEntry {
   text: string;
 }
 
-export type RunPhase = "idle" | "running" | "waiting-input";
+export type RunPhase = "idle" | "compiling" | "running" | "waiting-input";
 
-/** Interactive "Run" for a challenge page: console output, input() and Stop. */
-export function usePythonRun() {
-  const runner = getPythonRunner();
+/** Interactive "Run" for a challenge page: console output, input, Stop, and compiling for C++. */
+export function useRun(language: Language) {
+  const runner = getRunner(language);
   const runtime = useSyncExternalStore(runner.subscribe, runner.getState);
   const [entries, setEntries] = useState<ConsoleEntry[]>([]);
   const [phase, setPhase] = useState<RunPhase>("idle");
@@ -21,7 +22,8 @@ export function usePythonRun() {
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
 
-  // Start loading Python as soon as a challenge page opens.
+  // Start loading the runtime as soon as a challenge page opens: for C++ this
+  // takes about 20 s, which mostly overlaps with reading the task.
   useEffect(() => {
     runner.load().catch(() => {});
   }, [runner]);
@@ -49,6 +51,7 @@ export function usePythonRun() {
           mode: "run",
           onOutput: append,
           onInputRequest: () => setPhase("waiting-input"),
+          onStatus: (status) => setPhase(status === "compiling" ? "compiling" : "running"),
         });
         setResult(outcome);
       } catch {

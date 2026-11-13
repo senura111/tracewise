@@ -42,6 +42,10 @@ export interface RunResult {
   /** Test mode: how many input lines the test provided */
   inputLinesProvided?: number;
   timeLimitMs: number;
+  /** Compiled languages: warnings from a successful compile */
+  warnings?: CodeError[];
+  /** C++: the program tried to read input after it had all run out */
+  hitEndOfInput?: boolean;
 }
 
 export interface RunOptions {
@@ -52,6 +56,8 @@ export interface RunOptions {
   onOutput?: (stream: OutputStream, text: string) => void;
   /** Run mode: the program is waiting for a line; answer with provideInput() */
   onInputRequest?: (prompt: string) => void;
+  /** Compiled languages: "compiling" first, then "running" */
+  onStatus?: (status: "compiling" | "running") => void;
 }
 
 export type RuntimeStatus = "idle" | "loading" | "ready" | "failed";
@@ -61,6 +67,10 @@ export interface RuntimeState {
   /** e.g. "3.14.2" */
   version?: string;
   error?: string;
+  /** While loading: download progress from 0 to 1, if known */
+  progress?: number;
+  /** While loading: the download is done and the runtime is being prepared */
+  preparing?: boolean;
 }
 
 export interface Runner {

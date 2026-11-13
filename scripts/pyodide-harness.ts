@@ -28,10 +28,14 @@ def _tracewise_limit_steps(limit):
     sys.settrace(tracer)
 `;
 
-export type TestRun =
+export type TestRun = (
   | { status: "ok"; output: string }
   | { status: "error"; output: string; error: CodeError }
-  | { status: "input-exhausted" | "step-limit"; output: string };
+  | { status: "input-exhausted" | "step-limit"; output: string }
+) & {
+  /** C++: warnings from a successful compile */
+  warnings?: CodeError[];
+};
 
 export async function createHarness() {
   const py = await loadPyodide();

@@ -68,6 +68,15 @@ function nearMiss(expected: string[], actual: string[], first: number): string |
     );
   }
 
+  // The right answer with extra text in front of it, usually a printed prompt
+  // (C++ has no input() prompt, so `cout << "Enter a number: "` counts as output).
+  if (expected.length === actual.length && expected.every((line, i) => actual[i].endsWith(line) && line !== "")) {
+    return (
+      `The answer is there, but with extra text in front of it ("${a}"). ` +
+      `The tests check everything your program prints, so leave out prompts like "Enter a number:".`
+    );
+  }
+
   if (actual.length > expected.length) {
     for (let start = 0; start + expected.length <= actual.length; start++) {
       if (sameLines(expected, actual.slice(start, start + expected.length))) {

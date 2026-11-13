@@ -55,6 +55,12 @@ describe("compareOutput", () => {
     expect(note).toMatch(/1 line too many/);
   });
 
+  it("notices a prompt printed in front of the answer", () => {
+    const note = compareOutput("even\n", "Enter a number: even\n").note;
+    expect(note).toMatch(/extra text in front/);
+    expect(note).toMatch(/prompts/);
+  });
+
   it("gives no note for an ordinary wrong answer", () => {
     expect(compareOutput("zab\n", "z{|\n").note).toBeNull();
   });

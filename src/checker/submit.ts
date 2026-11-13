@@ -4,6 +4,7 @@
  */
 import type { TestCase } from "../content/types";
 import type { CodeError, RunOptions, RunResult } from "../runners/types";
+import { splitInputLines } from "../runners/python/input";
 import { compareOutput, type Comparison } from "./compare";
 
 export const TEST_TIME_LIMIT_MS = 2000;
@@ -16,7 +17,10 @@ export type TestOutcome =
   | { status: "input-exhausted"; linesProvided: number }
   | { status: "output-limit" }
   | { status: "crashed" }
-  | { status: "not-run"; reason: "timeout" | "cancelled" };
+  | { status: "not-run"; reason: SkipReason };
+
+/** Why the remaining tests weren't run. */
+export type SkipReason = "timeout" | "cancelled" | "compile-error";
 
 export interface TestReport {
   name: string;
@@ -62,7 +66,7 @@ export async function submitCode(
 ): Promise<SubmissionReport> {
   const names = testNames(tests);
   const reports: TestReport[] = [];
-  let skipReason: "timeout" | "cancelled" | null = null;
+  let skipReason: SkipReason | null = null;
 
   for (const [i, test] of tests.entries()) {
     if (!skipReason && isCancelled()) skipReason = "cancelled";
@@ -85,6 +89,8 @@ export async function submitCode(
     if (outcome.status === "not-run") skipReason = outcome.reason;
     // A program that never finishes would make every later test wait too.
     if (outcome.status === "timeout") skipReason = "timeout";
+    // Code that doesn't compile fails every test the same way.
+    if (outcome.status === "error" && outcome.error.type === "CompileError") skipReason = "compile-error";
     reports.push({ name: names[i], test, outcome, output });
     onProgress?.([...reports]);
   }
@@ -103,7 +109,16 @@ function toOutcome(result: RunResult, test: TestCase, output: string): TestOutco
   switch (result.status) {
     case "ok": {
       const comparison = compareOutput(test.output, output);
-      return comparison.passed ? { status: "passed" } : { status: "failed", comparison };
+      if (comparison.passed) return { status: "passed" };
+      // C++ doesn't stop when input runs out; the variable just keeps its old value.
+      if (result.hitEndOfInput && !comparison.note) {
+        const lines = splitInputLines(test.input).length;
+        comparison.note =
+          `Your program tried to read more input than this test gives (${lines} line${lines === 1 ? "" : "s"}). ` +
+          "In C++ the extra reads silently fail and leave their variables unchanged, which can give odd results. " +
+          "Read exactly the input the task describes.";
+      }
+      return { status: "failed", comparison };
     }
     case "error":
       return result.error ? { status: "error", error: result.error } : { status: "crashed" };

@@ -60,7 +60,7 @@ export function ChallengeListPage() {
       selected: language,
       options: LANGUAGES.map((l) => ({
         value: l,
-        label: l === "cpp" ? `${LANGUAGE_NAMES[l]} (soon)` : LANGUAGE_NAMES[l],
+        label: LANGUAGE_NAMES[l],
         disabled: !challenges.some((c) => c.variants[l]),
       })),
     },
@@ -122,7 +122,7 @@ export function ChallengeListPage() {
                 <li key={c.id} className={styles.row}>
                   <span className={styles.no}>{String(challengeNumber(c)).padStart(2, "0")}</span>
                   <div className={styles.main}>
-                    <Link to={`/challenges/${c.id}`} className={styles.title}>
+                    <Link to={`/challenges/${c.id}${language === "cpp" ? "?lang=cpp" : ""}`} className={styles.title}>
                       {c.title}
                     </Link>
                     <TopicTags topics={c.topics} />

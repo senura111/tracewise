@@ -266,3 +266,8 @@ a.language:hover {
 .soon .languageMeta {
   color: var(--muted);
 }
+
+.languageNote {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
