@@ -12,6 +12,8 @@ const crossOriginIsolation = {
 
 export default defineConfig({
   plugins: [react(), challenges()],
+  // The Python worker is an ES module (it imports Pyodide at runtime).
+  worker: { format: "es" },
   server: { headers: crossOriginIsolation },
   preview: { headers: crossOriginIsolation },
 });

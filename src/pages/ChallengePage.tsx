@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { challengeNumber, challenges, getChallenge } from "../content/challenges";
 import type { Challenge, TestCase } from "../content/types";
 import { CodeEditor } from "../components/CodeEditor";
 import { HintNotes } from "../components/HintNotes";
 import { DifficultyBadge, TopicTags } from "../components/Labels";
-import { OutputPanel } from "../components/OutputPanel";
+import { OutputPanel, type ResultsTab } from "../components/OutputPanel";
 import { Tabs, tabPanelProps } from "../components/Tabs";
 import { useMediaQuery } from "../hooks/useMediaQuery";
+import { usePythonRun } from "../hooks/usePythonRun";
+import type { RuntimeState } from "../runners/types";
 import { NotFoundPage } from "./NotFoundPage";
 import styles from "./ChallengePage.module.css";
 
@@ -43,6 +45,30 @@ function Workspace({ challenge }: { challenge: Challenge }) {
   const [sideTab, setSideTab] = useState<SideTab>("statement");
   const [walkthroughShown, setWalkthroughShown] = useState(false);
   const [code, setCode] = useState(variant.starter);
+  const [resultsTab, setResultsTab] = useState<ResultsTab>("output");
+  const python = usePythonRun();
+  const busy = python.phase !== "idle";
+  const canRun = python.runtime.status === "ready" && !busy;
+
+  const run = () => {
+    if (!canRun) return;
+    setResultsTab("output");
+    if (narrow) setSection("output");
+    void python.run(code);
+  };
+
+  // Ctrl/Cmd+Enter anywhere on the page (the editor handles it itself first).
+  // Re-subscribes each render so it always calls the latest `run`.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Enter" && (event.ctrlKey || event.metaKey) && !event.defaultPrevented) {
+        event.preventDefault();
+        run();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  });
 
   const number = challengeNumber(challenge);
   const prev = challenges[number - 2];
@@ -133,12 +159,21 @@ function Workspace({ challenge }: { challenge: Challenge }) {
 
         <section className={styles.code} {...sectionProps("code")}>
           <div className={styles.toolbar}>
-            <span className={`label ${styles.language}`}>Python</span>
+            <div className={styles.runtime}>
+              <span className={`label ${styles.language}`}>Python</span>
+              <RuntimeStatus state={python.runtime} onRetry={python.retryLoad} />
+            </div>
             <div className={styles.buttons}>
-              <button type="button" className="btn btn-primary" disabled aria-describedby="run-soon">
-                Run
-              </button>
-              <button type="button" className="btn btn-secondary" disabled aria-describedby="run-soon">
+              {busy ? (
+                <button type="button" className="btn btn-stop" onClick={python.stop}>
+                  Stop
+                </button>
+              ) : (
+                <button type="button" className="btn btn-primary" onClick={run} disabled={!canRun}>
+                  Run
+                </button>
+              )}
+              <button type="button" className="btn btn-secondary" disabled aria-describedby="submit-soon">
                 Submit
               </button>
               <button type="button" className="btn btn-ghost" onClick={reset}>
@@ -146,18 +181,59 @@ function Workspace({ challenge }: { challenge: Challenge }) {
               </button>
             </div>
           </div>
-          <CodeEditor value={code} onChange={setCode} ariaLabel={`Python code for ${challenge.title}`} />
-          <p id="run-soon" className={styles.soon}>
-            Running code is coming soon: the in-browser Python runtime is the next step.
+          <CodeEditor
+            value={code}
+            onChange={setCode}
+            onRun={run}
+            ariaLabel={`Python code for ${challenge.title}`}
+          />
+          <p id="submit-soon" className={styles.soon}>
+            Submit, which checks your code against the tests, arrives in the next update.
           </p>
         </section>
 
         <section className={styles.output} {...sectionProps("output")}>
-          <OutputPanel tests={challenge.tests} />
+          <OutputPanel
+            tests={challenge.tests}
+            tab={resultsTab}
+            onTabChange={setResultsTab}
+            entries={python.entries}
+            phase={python.phase}
+            result={python.result}
+            onSubmitInput={python.submitInput}
+            onStop={narrow ? python.stop : undefined}
+          />
         </section>
       </div>
     </div>
   );
+}
+
+function RuntimeStatus({ state, onRetry }: { state: RuntimeState; onRetry: () => void }) {
+  switch (state.status) {
+    case "idle":
+    case "loading":
+      return (
+        <span className={styles.status} role="status">
+          Loading Python… the first time takes a few seconds
+        </span>
+      );
+    case "ready":
+      return (
+        <span className={styles.status} role="status">
+          {state.version} ready
+        </span>
+      );
+    case "failed":
+      return (
+        <span className={`${styles.status} ${styles.statusFailed}`} role="alert">
+          Python couldn't load. Check your connection.{" "}
+          <button type="button" className="btn btn-ghost" onClick={onRetry}>
+            Try again
+          </button>
+        </span>
+      );
+  }
 }
 
 function Examples({ tests }: { tests: TestCase[] }) {

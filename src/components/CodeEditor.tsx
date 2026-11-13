@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { EditorState, RangeSetBuilder, StateEffect, StateField } from "@codemirror/state";
+import { EditorState, Prec, RangeSetBuilder, StateEffect, StateField } from "@codemirror/state";
 import {
   Decoration,
   EditorView,
@@ -29,6 +29,8 @@ interface CodeEditorProps {
   onChange?: (value: string) => void;
   notes?: LineNote[];
   ariaLabel: string;
+  /** Called on Ctrl+Enter / Cmd+Enter */
+  onRun?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -123,11 +125,15 @@ const highlight = HighlightStyle.define([
 
 // ---------------------------------------------------------------------------
 
-export function CodeEditor({ value, onChange, notes = [], ariaLabel }: CodeEditorProps) {
+const MOD_KEY = /Mac|iPhone|iPad/.test(navigator.userAgent) ? "Cmd" : "Ctrl";
+
+export function CodeEditor({ value, onChange, notes = [], ariaLabel, onRun }: CodeEditorProps) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+  const onRunRef = useRef(onRun);
+  onRunRef.current = onRun;
 
   useEffect(() => {
     const editor = new EditorView({
@@ -144,6 +150,18 @@ export function CodeEditor({ value, onChange, notes = [], ariaLabel }: CodeEdito
           bracketMatching(),
           indentUnit.of("    "),
           EditorState.tabSize.of(4),
+          // Ctrl/Cmd+Enter runs the code (overrides "insert blank line").
+          Prec.highest(
+            keymap.of([
+              {
+                key: "Mod-Enter",
+                run: () => {
+                  onRunRef.current?.();
+                  return true;
+                },
+              },
+            ]),
+          ),
           // Tab indents; Esc then Tab moves focus out of the editor.
           keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
           python(),
@@ -181,7 +199,8 @@ export function CodeEditor({ value, onChange, notes = [], ariaLabel }: CodeEdito
     <div className={styles.wrapper}>
       <div ref={host} />
       <p className={styles.keyHint}>
-        <kbd>Tab</kbd> indents · <kbd>Esc</kbd> then <kbd>Tab</kbd> leaves the editor
+        <kbd>{MOD_KEY}</kbd>+<kbd>Enter</kbd> runs · <kbd>Tab</kbd> indents · <kbd>Esc</kbd> then <kbd>Tab</kbd> leaves
+        the editor
       </p>
     </div>
   );

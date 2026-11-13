@@ -2,7 +2,7 @@
 
 Practise **Python** and **C++** in your browser by solving beginner-friendly challenges. Your code runs on your own machine, with hidden tests, progressive hints, solution walkthroughs, and a friendly explainer that turns error messages into plain language.
 
-> **Status:** Phase 1 is done: layout, challenge pages and code editor. Running code comes in Phase 2. See [PLAN.md](PLAN.md) for the roadmap.
+> **Status:** Phase 2 is done: Python runs in the browser. Checking code against tests comes in Phase 3. See [PLAN.md](PLAN.md) for the roadmap.
 
 ## Features
 
@@ -11,7 +11,7 @@ Practise **Python** and **C++** in your browser by solving beginner-friendly cha
 - [x] Code editor with Python syntax highlighting and auto-indent
 - [x] Responsive: side-by-side on desktop, tabs (Problem / Code / Output) on phones
 - [x] Light and dark mode that follow your system setting
-- [ ] Run Python in the browser (Pyodide), with a Stop button
+- [x] Run Python in the browser (Pyodide in a Web Worker), with live output, interactive `input()`, a Stop button and a 5-second time limit
 - [ ] Hidden tests with pass/fail marks
 - [ ] Friendly error explainer: red-pen notes on the line that went wrong
 - [ ] Progress and saved code stored in your browser
@@ -32,10 +32,21 @@ All colours are CSS custom properties in [`src/styles/tokens.css`](src/styles/to
 | Build | Vite |
 | Editor | CodeMirror 6, wrapped in a small component ([`CodeEditor.tsx`](src/components/CodeEditor.tsx)) |
 | Fonts | Self-hosted via Fontsource (no requests to third parties) |
-| Python runtime | Pyodide from jsDelivr, in a Web Worker (Phase 2) |
+| Python runtime | Pyodide 314 (Python 3.14) from jsDelivr, in a Web Worker |
+| Tests | Vitest |
 | Hosting | Netlify (static) |
 
 The site is served with `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp` (see [`netlify.toml`](netlify.toml) and [`vite.config.ts`](vite.config.ts)). These headers enable `SharedArrayBuffer`, which the Python runtime uses for interactive `input()` and for stopping runaway code.
+
+## How Python runs
+
+Code runs in a Web Worker ([`src/runners/python/`](src/runners/python)), so a slow program never freezes the page. Pyodide loads from jsDelivr when you open a challenge (about 10 to 15 MB the first time, cached afterwards) and stays loaded while you move between challenges.
+
+- **Stop and the time limit:** the page sets a shared interrupt flag, which raises `KeyboardInterrupt` inside Python, so Python stays loaded. If a program doesn't stop within a second (for example a long calculation inside a built-in function), the worker is killed and a fresh one is loaded. Runs are limited to 5 seconds, not counting time spent waiting for input.
+- **`input()`:** when a program asks for input, a field appears in the output panel and the worker waits on shared memory (`Atomics.wait`) until you press Enter. Stop works while it's waiting.
+- **Test mode** (used by Submit in Phase 3): `input()` reads from the test's input, and prompt text such as `input("Name: ")` is dropped so it doesn't count as output. Asking for more input than the test gives ends the test with a plain-language message.
+- **Limits:** output stops after 10,000 lines or 200,000 characters. Each run starts with fresh variables.
+- **Errors:** code runs as `main.py`, and Pyodide's internal frames are removed from tracebacks, which keeps the line numbers meaningful for beginners.
 
 ## Run locally
 
@@ -46,6 +57,7 @@ npm install
 npm run dev        # dev server at http://localhost:5173
 npm run build      # type-check and build to dist/
 npm run preview    # serve the production build at http://localhost:4173
+npm test           # unit tests (Vitest)
 ```
 
 ## Project structure

@@ -127,6 +127,11 @@ button {
   border-color: var(--accent);
 }
 
+.btn-stop {
+  background: var(--redpen);
+  color: var(--accent-ink);
+}
+
 .btn-ghost {
   background: transparent;
   color: var(--muted);

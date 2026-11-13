@@ -8,14 +8,32 @@
   padding: 0 0.5rem;
 }
 
+/* ---- Output -------------------------------------------------------------- */
+.outputPanel {
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.running {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
 .console {
   min-height: 9rem;
-  margin: 0.75rem;
+  max-height: 24rem;
+  overflow: auto;
   padding: 0.75rem 1rem;
   background: var(--editor-bg);
   border: 1px solid var(--rule);
   font-family: var(--font-code);
   font-size: 0.9rem;
+  line-height: 1.55;
 }
 
 .placeholder {
@@ -23,6 +41,88 @@
   color: var(--muted);
 }
 
+.stream,
+.traceback {
+  margin: 0;
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.stdout {
+  color: var(--ink);
+}
+
+.stderr {
+  color: var(--redpen);
+}
+
+/* What the learner typed */
+.input {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+span.input {
+  font-weight: 700;
+}
+
+.traceback {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--rule);
+  color: var(--redpen);
+}
+
+.inputForm {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: min(100%, 16rem);
+  vertical-align: baseline;
+}
+
+input.input {
+  flex: 1;
+  min-width: 6rem;
+  font: inherit;
+  font-weight: 700;
+  padding: 0 0.3rem;
+  background: var(--editor-active-line);
+  border: 0;
+  border-bottom: 2px solid var(--accent);
+  border-radius: 0;
+}
+
+input.input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.inputHint {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.summary {
+  margin: 0;
+  padding: 0.45rem 0.75rem;
+  border-left: 3px solid var(--pass);
+  font-size: 0.92rem;
+}
+
+.summary[data-tone="error"] {
+  border-left-color: var(--redpen);
+  background: var(--redpen-wash);
+}
+
+.summary[data-tone="stopped"] {
+  border-left-color: var(--muted);
+}
+
+/* ---- Tests worksheet ----------------------------------------------------- */
 .worksheet {
   padding: 0.75rem 1.1rem 1rem;
 }
