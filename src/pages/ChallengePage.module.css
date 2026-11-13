@@ -1,0 +1,237 @@
+.page {
+  max-width: var(--workspace-width);
+  margin: 0 auto;
+  padding: 1.25rem var(--gutter) 3rem;
+  display: grid;
+  gap: 1.25rem;
+}
+
+/* ---- Header -------------------------------------------------------------- */
+.head {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.crumbs {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.h1 {
+  font-size: clamp(1.4rem, 3.5vw, 1.9rem);
+  text-transform: uppercase;
+  margin-right: 0.25rem;
+}
+
+/* Mobile/tablet section tabs */
+.sectionTabs {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--paper);
+}
+
+/* ---- Workspace ----------------------------------------------------------- */
+.workspace {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 64rem) {
+  .workspace {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "problem code"
+      "problem output";
+    align-items: start;
+    gap: 1.25rem 1.75rem;
+  }
+
+  .problem {
+    grid-area: problem;
+  }
+
+  .code {
+    grid-area: code;
+  }
+
+  .output {
+    grid-area: output;
+  }
+}
+
+/* ---- Problem column ------------------------------------------------------ */
+.problem {
+  container-type: inline-size;
+  display: grid;
+  gap: 1.25rem;
+  align-content: start;
+}
+
+.problem:focus-visible,
+.code:focus-visible,
+.output:focus-visible {
+  outline-offset: 4px;
+}
+
+.statement {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.text {
+  display: grid;
+  gap: 1.25rem;
+  align-content: start;
+}
+
+/* Hints move into a margin column when there's room */
+@container (min-width: 38rem) {
+  .statement {
+    grid-template-columns: minmax(0, 1fr) 12.5rem;
+  }
+
+  .margin [data-note]::before {
+    content: "";
+    position: absolute;
+    left: -1.5rem;
+    top: 1.15rem;
+    width: 1.5rem;
+    border-top: 1px dashed var(--muted);
+  }
+}
+
+.examples {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.example {
+  margin: 0;
+  padding: 0.6rem 0.8rem 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+
+.example figcaption {
+  color: var(--accent);
+  margin-bottom: 0.4rem;
+}
+
+.io {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: 0.6rem;
+}
+
+.ioLabel {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 0.2rem;
+}
+
+.io pre {
+  margin: 0;
+  padding: 0.45rem 0.65rem;
+  background: var(--editor-bg);
+  border: 1px solid var(--rule);
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+}
+
+.walkthrough {
+  max-width: 44rem;
+}
+
+.locked {
+  display: grid;
+  justify-items: start;
+  gap: 0.6rem;
+  padding: 1rem 1.15rem;
+  background: var(--surface);
+  border: 1px dashed var(--rule);
+}
+
+.locked .label {
+  color: var(--muted);
+}
+
+.locked p {
+  margin: 0;
+}
+
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+}
+
+.prev,
+.next {
+  display: grid;
+  gap: 0.1rem;
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.prev .label,
+.next .label {
+  color: var(--muted);
+}
+
+.prev:hover,
+.next:hover {
+  color: var(--accent);
+}
+
+.next {
+  margin-left: auto;
+  text-align: right;
+}
+
+/* ---- Code column --------------------------------------------------------- */
+.code {
+  display: grid;
+  gap: 0.6rem;
+  align-content: start;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.language {
+  border: 1.5px solid var(--ink);
+  padding: 0.1rem 0.45rem;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.soon {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}

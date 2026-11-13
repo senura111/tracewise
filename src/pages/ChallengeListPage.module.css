@@ -1,0 +1,149 @@
+.page {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 2rem var(--gutter) 4rem;
+  display: grid;
+  gap: 1.75rem;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.h1 {
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  text-transform: uppercase;
+}
+
+.count {
+  margin: 0;
+  color: var(--muted);
+}
+
+.empty {
+  display: grid;
+  justify-items: start;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px dashed var(--rule);
+}
+
+.empty p {
+  margin: 0;
+}
+
+/* ---- Register of challenges, grouped by topic ----------------------------- */
+.group {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.groupTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--accent);
+}
+
+.groupCount {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 1rem 0.75rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.row:first-child {
+  border-top: 0;
+}
+
+.row:hover {
+  background: var(--editor-active-line);
+}
+
+.no {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--rule);
+  font-family: var(--font-heading);
+  font-stretch: var(--heading-stretch);
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.main {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+/* Whole row is clickable */
+.title::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.title:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.title:focus-visible {
+  outline: none;
+}
+
+.title:focus-visible::after {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+@media (max-width: 36rem) {
+  .row {
+    grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+  }
+
+  .row > :global(.badge) {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+  }
+
+  .row > svg {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .no {
+    grid-row: span 2;
+  }
+}

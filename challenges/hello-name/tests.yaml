@@ -1,0 +1,8 @@
+cases:
+  - input: "Ada\n"
+    output: "Hello, Ada!\n"
+    visible: true
+  - input: "Grace\n"
+    output: "Hello, Grace!\n"
+  - input: "Mary Jane\n"
+    output: "Hello, Mary Jane!\n"

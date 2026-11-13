@@ -1,0 +1,65 @@
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+
+.panel > [role="tablist"] {
+  padding: 0 0.5rem;
+}
+
+.console {
+  min-height: 9rem;
+  margin: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--editor-bg);
+  border: 1px solid var(--rule);
+  font-family: var(--font-code);
+  font-size: 0.9rem;
+}
+
+.placeholder {
+  margin: 0;
+  color: var(--muted);
+}
+
+.worksheet {
+  padding: 0.75rem 1.1rem 1rem;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.score {
+  font-family: var(--font-heading);
+  font-stretch: 115%;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--muted);
+  border: 1.5px solid var(--rule);
+  padding: 0.05rem 0.6rem;
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.foot {
+  margin: 0.6rem 0 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}

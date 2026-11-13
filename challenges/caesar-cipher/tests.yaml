@@ -1,0 +1,15 @@
+cases:
+  - input: "hello\n3\n"
+    output: "khoor\n"
+    visible: true
+  - input: "xyz\n2\n"
+    output: "zab\n"
+    visible: true
+  - input: "attack at dawn\n13\n"
+    output: "nggnpx ng qnja\n"
+  - input: "hello, world!\n1\n"
+    output: "ifmmp, xpsme!\n"
+  - input: "abc\n26\n"
+    output: "abc\n"
+  - input: "meet at 9pm\n0\n"
+    output: "meet at 9pm\n"

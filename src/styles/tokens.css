@@ -1,0 +1,57 @@
+/*
+ * Design tokens: "Drafting pad".
+ * Green-grey engineering-pad paper, graphite ink, a petrol-blue technical pen,
+ * a red pen reserved for mistakes, and a highlighter for hints.
+ *
+ * Colours use light-dark(), so the element's `color-scheme` picks the palette.
+ * :root follows the system setting; a manual toggle can set it later.
+ */
+:root {
+  color-scheme: light dark;
+
+  /* Type */
+  --font-body: "Atkinson Hyperlegible Next Variable", system-ui, sans-serif;
+  --font-code: "Atkinson Hyperlegible Mono Variable", ui-monospace, monospace;
+  --font-heading: "Archivo Variable", var(--font-body);
+  --heading-weight: 760;
+  --heading-stretch: 125%;
+  --heading-tracking: -0.015em;
+  --label-stretch: 115%;
+  --label-tracking: 0.09em;
+  --label-size: 0.7rem;
+
+  /* Shape and layout */
+  --radius: 2px;
+  --grid-size: 20px;
+  --gutter: 1rem;
+  --content-width: 72rem;
+  --workspace-width: 100rem;
+
+  /* Paper and ink */
+  --paper: light-dark(#e4ebe3, #111613);
+  --surface: light-dark(#f3f6f1, #182019);
+  --rule: light-dark(#b6c5b9, #2e3c32);
+  --grid: light-dark(rgb(47 92 70 / 0.08), rgb(160 200 170 / 0.05));
+  --ink: light-dark(#1c2420, #dde6de);
+  --muted: light-dark(#53625a, #93a298);
+
+  /* Pens */
+  --accent: light-dark(#0e5a73, #6cc6e0);
+  --accent-ink: light-dark(#ffffff, #0b1a20);
+  --redpen: light-dark(#c42e1d, #ff6a55);
+  --redpen-wash: light-dark(rgb(196 46 29 / 0.08), rgb(255 106 85 / 0.12));
+  --highlight: light-dark(rgb(255 184 28 / 0.55), rgb(255 190 50 / 0.3));
+  --pass: light-dark(#21703f, #63d394);
+  --focus: var(--accent);
+
+  /* Editor */
+  --editor-bg: light-dark(#fbfcfa, #0d110f);
+  --editor-gutter: light-dark(#eef2ec, #141a16);
+  --editor-active-line: light-dark(rgb(14 90 115 / 0.06), rgb(108 198 224 / 0.07));
+  --editor-selection: light-dark(rgb(14 90 115 / 0.18), rgb(108 198 224 / 0.22));
+  --code-keyword: light-dark(#0e5a73, #6cc6e0);
+  --code-string: light-dark(#8a4b00, #f2b866);
+  --code-number: light-dark(#9c2f6e, #f08dc4);
+  --code-comment: light-dark(#66746b, #7f8e85);
+  --code-function: light-dark(#2e5f1e, #a6d98a);
+}

@@ -1,0 +1,59 @@
+.wrapper {
+  display: grid;
+  gap: 0.4rem;
+  /* Lets notes size themselves to the editor's width (cqi units). */
+  container-type: inline-size;
+}
+
+.keyHint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.keyHint kbd {
+  font-family: var(--font-code);
+  font-size: 0.75rem;
+  padding: 0 0.3em;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+}
+
+/* The line an error note points at */
+.noteLine {
+  background-color: var(--redpen-wash) !important;
+  text-decoration: underline wavy var(--redpen);
+  text-decoration-skip-ink: none;
+  text-underline-offset: 4px;
+}
+
+/* Red-pen note shown under that line. CodeMirror measures block widgets
+   without their margins, so spacing is padding on the outer element. */
+.note {
+  padding: 0.35rem 0.75rem 0.6rem 0.5rem;
+  font-family: var(--font-body);
+  white-space: normal;
+}
+
+.noteBox {
+  /* Wrap at the editor's width (minus the gutter) instead of widening it. */
+  max-width: calc(100cqi - 4.5rem);
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid var(--redpen);
+  background: var(--surface);
+}
+
+.noteLabel {
+  font-family: var(--font-heading);
+  font-stretch: var(--label-stretch);
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  font-weight: 700;
+  font-size: var(--label-size);
+  color: var(--redpen);
+}
+
+.noteMessage {
+  margin: 0.2rem 0 0;
+  line-height: 1.45;
+}

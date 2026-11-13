@@ -1,10 +1,34 @@
-import { StrictMode } from "react";
+import { StrictMode, lazy } from "react";
 import { createRoot } from "react-dom/client";
-import { App } from "./App";
-import "./styles.css";
+import { RouterProvider, createHashRouter } from "react-router";
+import "@fontsource-variable/atkinson-hyperlegible-next";
+import "@fontsource-variable/atkinson-hyperlegible-mono";
+import "@fontsource-variable/archivo/wdth.css";
+import "./styles/global.css";
+import { Layout } from "./components/Layout";
+import { HomePage } from "./pages/HomePage";
+import { ChallengeListPage } from "./pages/ChallengeListPage";
+import { NotFoundPage } from "./pages/NotFoundPage";
+
+// The challenge page carries the code editor, so it loads on demand and keeps
+// the home and list pages light.
+const ChallengePage = lazy(() => import("./pages/ChallengePage").then((m) => ({ default: m.ChallengePage })));
+
+// Hash URLs (#/challenges/...) work on any static host without redirect rules.
+const router = createHashRouter([
+  {
+    element: <Layout />,
+    children: [
+      { path: "/", element: <HomePage /> },
+      { path: "/challenges", element: <ChallengeListPage /> },
+      { path: "/challenges/:id", element: <ChallengePage /> },
+      { path: "*", element: <NotFoundPage /> },
+    ],
+  },
+]);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <RouterProvider router={router} />
   </StrictMode>,
 );

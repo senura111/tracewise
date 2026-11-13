@@ -1,0 +1,13 @@
+cases:
+  - input: "4\n"
+    output: "even\n"
+    visible: true
+  - input: "7\n"
+    output: "odd\n"
+    visible: true
+  - input: "0\n"
+    output: "even\n"
+  - input: "-3\n"
+    output: "odd\n"
+  - input: "1000000\n"
+    output: "even\n"
