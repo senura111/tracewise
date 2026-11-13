@@ -9,7 +9,8 @@ import { readFile, readdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { parse as parseYaml } from "yaml";
-import { marked } from "marked";
+import { Marked } from "marked";
+import { highlightPython } from "./highlight-python.ts";
 import type { Plugin } from "vite";
 import {
   DIFFICULTIES,
@@ -28,7 +29,17 @@ const EXTENSIONS: Record<Language, string> = { python: "py", cpp: "cpp" };
 type Fail = (message: string) => never;
 
 const normalize = (text: string) => text.replace(/\r\n/g, "\n");
-const toHtml = (markdown: string) => marked.parse(markdown.trim(), { async: false });
+// Python code blocks get syntax highlighting at build time; others render as usual.
+const markdown = new Marked({
+  renderer: {
+    code({ text, lang }) {
+      if (lang !== "python" && lang !== "py") return false;
+      return `<pre><code class="language-python">${highlightPython(text)}</code></pre>
+`;
+    },
+  },
+});
+const toHtml = (source: string) => markdown.parse(source.trim(), { async: false });
 
 async function readText(file: string, watch: (file: string) => void): Promise<string> {
   watch(file);

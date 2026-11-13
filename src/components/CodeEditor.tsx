@@ -15,13 +15,21 @@ import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirro
 import { HighlightStyle, bracketMatching, indentOnInput, indentUnit, syntaxHighlighting } from "@codemirror/language";
 import { python } from "@codemirror/lang-python";
 import { tags as t } from "@lezer/highlight";
+import { splitInlineCode } from "../explain/inline";
 import styles from "./CodeEditor.module.css";
 
-/** A red-pen note attached below a line of code (used by the error explainer). */
+/**
+ * A note attached to a line of code (used by the error explainer).
+ * "error": red-pen note shown below the line. "fix": a lighter marker for the
+ * line where the fix goes. Text may contain `backticks` for code.
+ */
 export interface LineNote {
+  kind?: "error" | "fix";
   line: number;
   label: string;
+  title?: string;
   message: string;
+  fix?: string;
 }
 
 interface CodeEditorProps {
@@ -36,12 +44,31 @@ interface CodeEditorProps {
 // ---------------------------------------------------------------------------
 // Line notes: a highlighted line plus a block widget rendered underneath it.
 
+/** Creates an element whose text may contain `backtick` code spans. */
+function richText(tag: string, className: string, text: string) {
+  const el = document.createElement(tag);
+  el.className = className;
+  for (const part of splitInlineCode(text)) {
+    if (part.code) {
+      const code = document.createElement("code");
+      code.textContent = part.text;
+      el.append(code);
+    } else {
+      el.append(part.text);
+    }
+  }
+  return el;
+}
+
+const sameNote = (a: LineNote, b: LineNote) =>
+  a.kind === b.kind && a.label === b.label && a.title === b.title && a.message === b.message && a.fix === b.fix;
+
 class NoteWidget extends WidgetType {
   constructor(readonly note: LineNote) {
     super();
   }
   eq(other: NoteWidget) {
-    return other.note.label === this.note.label && other.note.message === this.note.message;
+    return sameNote(other.note, this.note);
   }
   toDOM() {
     const outer = document.createElement("div");
@@ -50,27 +77,56 @@ class NoteWidget extends WidgetType {
     const box = document.createElement("div");
     box.className = styles.noteBox;
     outer.append(box);
-    const label = document.createElement("span");
-    label.className = styles.noteLabel;
-    label.textContent = this.note.label;
-    const message = document.createElement("p");
-    message.className = styles.noteMessage;
-    message.textContent = this.note.message;
-    box.append(label, message);
+    box.append(richText("span", styles.noteLabel, this.note.label));
+    if (this.note.title) box.append(richText("p", styles.noteTitle, this.note.title));
+    box.append(richText("p", styles.noteMessage, this.note.message));
+    if (this.note.fix) {
+      const fix = document.createElement("p");
+      fix.className = styles.noteFix;
+      const label = document.createElement("span");
+      label.className = styles.noteFixLabel;
+      label.textContent = "Try";
+      const code = document.createElement("code");
+      code.textContent = this.note.fix;
+      fix.append(label, code);
+      box.append(fix);
+    }
     return outer;
+  }
+}
+
+/** Small inline marker at the end of the line where the fix goes. */
+class FixMarker extends WidgetType {
+  constructor(readonly label: string) {
+    super();
+  }
+  eq(other: FixMarker) {
+    return other.label === this.label;
+  }
+  toDOM() {
+    const el = document.createElement("span");
+    el.className = styles.fixMarker;
+    el.textContent = `← ${this.label}`;
+    return el;
   }
 }
 
 const setNotes = StateEffect.define<LineNote[]>();
 const noteLine = Decoration.line({ class: styles.noteLine });
+const fixLine = Decoration.line({ class: styles.fixLine });
 
 function buildNotes(state: EditorState, notes: LineNote[]): DecorationSet {
   const builder = new RangeSetBuilder<Decoration>();
   const valid = notes.filter((n) => n.line >= 1 && n.line <= state.doc.lines).sort((a, b) => a.line - b.line);
   for (const note of valid) {
     const line = state.doc.line(note.line);
-    builder.add(line.from, line.from, noteLine);
-    builder.add(line.to, line.to, Decoration.widget({ widget: new NoteWidget(note), block: true, side: 1 }));
+    if (note.kind === "fix") {
+      builder.add(line.from, line.from, fixLine);
+      builder.add(line.to, line.to, Decoration.widget({ widget: new FixMarker(note.label), side: 1 }));
+    } else {
+      builder.add(line.from, line.from, noteLine);
+      builder.add(line.to, line.to, Decoration.widget({ widget: new NoteWidget(note), block: true, side: 1 }));
+    }
   }
   return builder.finish();
 }
@@ -127,7 +183,9 @@ const highlight = HighlightStyle.define([
 
 const MOD_KEY = /Mac|iPhone|iPad/.test(navigator.userAgent) ? "Cmd" : "Ctrl";
 
-export function CodeEditor({ value, onChange, notes = [], ariaLabel, onRun }: CodeEditorProps) {
+const NO_NOTES: LineNote[] = [];
+
+export function CodeEditor({ value, onChange, notes = NO_NOTES, ariaLabel, onRun }: CodeEditorProps) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const onChangeRef = useRef(onChange);

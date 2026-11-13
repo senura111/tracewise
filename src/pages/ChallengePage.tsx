@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
 import { challengeNumber, challenges, getChallenge } from "../content/challenges";
 import type { Challenge, TestCase } from "../content/types";
-import { CodeEditor } from "../components/CodeEditor";
+import { CodeEditor, type LineNote } from "../components/CodeEditor";
+import { explainError } from "../explain/explain";
+import { notesFor } from "../explain/notes";
 import { HintNotes } from "../components/HintNotes";
 import { DifficultyBadge, TopicTags } from "../components/Labels";
 import { OutputPanel, type ResultsTab } from "../components/OutputPanel";
@@ -60,6 +62,34 @@ function Workspace({ challenge }: { challenge: Challenge }) {
       : python.phase === "running"
         ? "Running…"
         : null;
+
+  // ---- Error explanations ------------------------------------------------------
+  const [notes, setNotes] = useState<LineNote[]>([]);
+  const runError = python.result?.error ?? null;
+  const runExplanation = useMemo(
+    () => (runError ? explainError(runError, python.ranCode) : null),
+    [runError, python.ranCode],
+  );
+
+  // A finished Run: show its error (if any) on the code.
+  useEffect(() => {
+    setNotes(runExplanation && runError ? notesFor(runExplanation, runError) : []);
+  }, [runExplanation, runError]);
+
+  // A finished Submit: show the first test error (if any) on the code.
+  useEffect(() => {
+    if (!submission.report) return;
+    const first = submission.report.reports.find((r) => r.outcome.status === "error")?.outcome;
+    setNotes(
+      first?.status === "error" ? notesFor(explainError(first.error, submission.submittedCode), first.error) : [],
+    );
+  }, [submission.report, submission.submittedCode]);
+
+  // Notes describe the code as it was run, so editing clears them.
+  const changeCode = (value: string) => {
+    setCode(value);
+    setNotes([]);
+  };
 
   const run = () => {
     if (!canRun) return;
@@ -208,7 +238,8 @@ function Workspace({ challenge }: { challenge: Challenge }) {
           </div>
           <CodeEditor
             value={code}
-            onChange={setCode}
+            onChange={changeCode}
+            notes={notes}
             onRun={run}
             ariaLabel={`Python code for ${challenge.title}`}
           />
@@ -224,12 +255,14 @@ function Workspace({ challenge }: { challenge: Challenge }) {
             entries={python.entries}
             phase={python.phase}
             result={python.result}
+            explanation={runExplanation}
             onSubmitInput={python.submitInput}
             busyLabel={busyLabel}
             onStop={narrow ? stop : undefined}
             testResults={
               <TestResults
                 tests={challenge.tests}
+                code={submission.submittedCode}
                 marking={submission.marking}
                 progress={submission.progress}
                 report={submission.report}

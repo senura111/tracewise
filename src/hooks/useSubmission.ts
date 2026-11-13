@@ -9,6 +9,8 @@ export function useSubmission(tests: TestCase[]) {
   const [marking, setMarking] = useState(false);
   const [progress, setProgress] = useState<TestReport[]>([]);
   const [report, setReport] = useState<SubmissionReport | null>(null);
+  /** The code that was marked, so errors can be explained against it */
+  const [submittedCode, setSubmittedCode] = useState("");
   const cancelled = useRef(false);
   const markingRef = useRef(false);
 
@@ -28,6 +30,7 @@ export function useSubmission(tests: TestCase[]) {
       setMarking(true);
       setReport(null);
       setProgress([]);
+      setSubmittedCode(code);
       try {
         const result = await submitCode(runner, code, tests, {
           onProgress: setProgress,
@@ -51,5 +54,5 @@ export function useSubmission(tests: TestCase[]) {
     runner.stop();
   }, [runner]);
 
-  return { marking, progress, report, submit, cancel };
+  return { marking, progress, report, submittedCode, submit, cancel };
 }

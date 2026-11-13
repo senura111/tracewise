@@ -13,5 +13,5 @@
     "allowImportingTsExtensions": true,
     "types": ["node"]
   },
-  "include": ["vite.config.ts", "vite-plugin-challenges.ts", "scripts", "src/content/types.ts"]
+  "include": ["vite.config.ts", "vite-plugin-challenges.ts", "highlight-python.ts", "scripts", "src/content/types.ts"]
 }

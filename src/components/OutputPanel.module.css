@@ -43,12 +43,6 @@
 }
 
 .stream,
-.traceback {
-  margin: 0;
-  font: inherit;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
 
 .stdout {
   color: var(--ink);

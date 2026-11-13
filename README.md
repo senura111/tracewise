@@ -2,7 +2,7 @@
 
 Practise **Python** and **C++** in your browser by solving beginner-friendly challenges. Your code runs on your own machine, with hidden tests, progressive hints, solution walkthroughs, and a friendly explainer that turns error messages into plain language.
 
-> **Status:** Phase 3 is done: 14 Python challenges with Submit and marked test results. The friendly error explainer comes in Phase 4. See [PLAN.md](PLAN.md) for the roadmap.
+> **Status:** Phase 4 is done: errors are explained in plain language, right on the line that went wrong. Saving progress comes in Phase 5. See [PLAN.md](PLAN.md) for the roadmap.
 
 ## Features
 
@@ -14,7 +14,8 @@ Practise **Python** and **C++** in your browser by solving beginner-friendly cha
 - [x] Run Python in the browser (Pyodide in a Web Worker), with live output, interactive `input()`, a Stop button and a 5-second time limit
 - [x] 14 beginner Python challenges: variables, numbers, conditionals, loops, strings, lists, functions, dictionaries and two security puzzles
 - [x] Submit: hidden tests with ticks and crosses, expected-vs-your-output comparison, and near-miss notes (capital letters, spacing, `5.0` vs `5`, extra or missing lines)
-- [ ] Friendly error explainer: red-pen notes on the line that went wrong
+- [x] Friendly error explainer: 46 rules turn Python errors into plain language, shown as a red-pen note on the line that went wrong (and on the line where the fix goes)
+- [x] Syntax-highlighted code in walkthroughs and hints
 - [ ] Progress and saved code stored in your browser
 - [ ] C++ support
 
@@ -55,6 +56,29 @@ Submit runs the program once per test in test mode, with a 2-second limit per te
 
 Output is compared line by line ([`src/checker/compare.ts`](src/checker/compare.ts)). Only differences a beginner can't see are forgiven: line-ending style, spaces at the end of a line, and blank lines at the very end. When a test fails, the comparison looks for common near misses and explains them in plain language. Failing examples show expected vs actual output; failing hidden tests say what went wrong, with a button to reveal the details.
 
+## How errors are explained
+
+When a program stops with an error, [`src/explain/`](src/explain) turns Python's message into a short explanation, shown as a red-pen note under the line in the editor and as a card in the output (with Python's full message one click away). Editing the code clears the notes.
+
+The explainer is a list of small rules in [`src/explain/python/`](src/explain/python), checked in order:
+
+```ts
+{
+  id: "type/text-plus-number",
+  types: ["TypeError"],
+  match: /can only concatenate str \(not "(int|float)"\) to str/,
+  explain: () => ({
+    title: "Text and a number can't be joined with `+`",
+    message: "`+` can join two pieces of text, or add two numbers, but not one of each. ...",
+  }),
+  examples: ['age = 5\nprint("Age: " + age)'],
+}
+```
+
+A rule can also look at the code: for example, a `TypeError` on a variable that was read with a bare `input()` points at the line where `int(...)` is missing. If no rule matches, there's a general explanation for each error type.
+
+**Adding a rule:** add an object to `syntax.ts` or `runtime.ts` with at least one example program. `npm run check:explainer` runs every example through real Python 3.14 and checks it's explained by its own rule, so a rule can't silently stop matching when Python's wording changes.
+
 ## Run locally
 
 Requires Node.js 26 (see `.nvmrc`).
@@ -66,17 +90,19 @@ npm run build      # type-check and build to dist/
 npm run preview    # serve the production build at http://localhost:4173
 npm test           # unit tests (Vitest)
 npm run check:solutions   # every reference solution passes, every starter doesn't
+npm run check:explainer   # every explainer rule matches real Python errors
 ```
 
-`check:solutions` runs real Python through the `pyodide` npm package in Node, so no Python install is needed. GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the type-check, unit tests, this check and a build on every push.
+Both checks run real Python through the `pyodide` npm package in Node, so no Python install is needed. GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the type-check, unit tests, both checks and a build on every push.
 
 ## Project structure
 
 ```
 challenges/              challenge content, one folder per challenge
-scripts/                 check-solutions.ts
+scripts/                 check-solutions.ts, check-explainer.ts, shared Pyodide harness
 src/
   checker/               output comparison and marking (Submit)
+  explain/               friendly error explanations (rules, fallbacks, editor notes)
   components/            Layout, CodeEditor, HintNotes, OutputPanel, TestResults, FilterBar, Tabs, ...
   content/               challenge types and helpers (data comes from the plugin below)
   hooks/                 usePythonRun, useSubmission, useMediaQuery

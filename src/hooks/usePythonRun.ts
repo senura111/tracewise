@@ -16,6 +16,8 @@ export function usePythonRun() {
   const [entries, setEntries] = useState<ConsoleEntry[]>([]);
   const [phase, setPhase] = useState<RunPhase>("idle");
   const [result, setResult] = useState<RunResult | null>(null);
+  /** The code of the latest run, so errors can be explained against it */
+  const [ranCode, setRanCode] = useState("");
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
 
@@ -40,6 +42,7 @@ export function usePythonRun() {
       if (phaseRef.current !== "idle") return;
       setEntries([]);
       setResult(null);
+      setRanCode(code);
       setPhase("running");
       try {
         const outcome = await runner.run(code, {
@@ -69,5 +72,5 @@ export function usePythonRun() {
   const stop = useCallback(() => runner.stop(), [runner]);
   const retryLoad = useCallback(() => void runner.load().catch(() => {}), [runner]);
 
-  return { runtime, entries, phase, result, run, stop, submitInput, retryLoad };
+  return { runtime, entries, phase, result, ranCode, run, stop, submitInput, retryLoad };
 }

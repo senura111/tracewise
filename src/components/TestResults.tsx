@@ -3,11 +3,15 @@ import type { Comparison } from "../checker/compare";
 import { TEST_TIME_LIMIT_MS, testNames, type SubmissionReport, type TestReport } from "../checker/submit";
 import type { TestCase } from "../content/types";
 import { inputExhaustedMessage } from "../runners/messages";
+import { explainError } from "../explain/explain";
+import { ErrorExplanation } from "./ErrorExplanation";
 import { Mark, type MarkState } from "./Mark";
 import styles from "./TestResults.module.css";
 
 interface TestResultsProps {
   tests: TestCase[];
+  /** The code that was marked, for explaining errors */
+  code: string;
   marking: boolean;
   progress: TestReport[];
   report: SubmissionReport | null;
@@ -15,7 +19,7 @@ interface TestResultsProps {
 }
 
 /** The marked worksheet: a tick or cross per test, with details for failures. */
-export function TestResults({ tests, marking, progress, report, onShowWalkthrough }: TestResultsProps) {
+export function TestResults({ tests, code, marking, progress, report, onShowWalkthrough }: TestResultsProps) {
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
   const names = testNames(tests);
   const reports = report?.reports ?? progress;
@@ -76,7 +80,7 @@ export function TestResults({ tests, marking, progress, report, onShowWalkthroug
                   </button>
                 )}
               </div>
-              {entry && needsDetails(entry) && showDetails && <Details report={entry} seconds={seconds} />}
+              {entry && needsDetails(entry) && showDetails && <Details report={entry} code={code} seconds={seconds} />}
             </li>
           );
         })}
@@ -147,7 +151,7 @@ function summary({ outcome }: TestReport, seconds: number): string {
   }
 }
 
-function Details({ report, seconds }: { report: TestReport; seconds: number }) {
+function Details({ report, code, seconds }: { report: TestReport; code: string; seconds: number }) {
   const { outcome, test } = report;
   return (
     <div className={styles.details}>
@@ -159,7 +163,9 @@ function Details({ report, seconds }: { report: TestReport; seconds: number }) {
       {outcome.status === "failed" && outcome.comparison.note && (
         <p className={styles.note}>{outcome.comparison.note}</p>
       )}
-      {outcome.status === "error" && <pre className={`${styles.pre} ${styles.traceback}`}>{outcome.error.traceback}</pre>}
+      {outcome.status === "error" && (
+        <ErrorExplanation explanation={explainError(outcome.error, code)} error={outcome.error} />
+      )}
       {outcome.status === "timeout" && (
         <p className={styles.note}>
           Your program was still running after {seconds} seconds on this input. Is there a loop whose condition never

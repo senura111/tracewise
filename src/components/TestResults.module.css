@@ -159,9 +159,6 @@
   font-style: italic;
 }
 
-.traceback {
-  color: var(--redpen);
-}
 
 .note {
   margin: 0;

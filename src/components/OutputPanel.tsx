@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import type { Explanation } from "../explain/types";
 import type { ConsoleEntry, RunPhase } from "../hooks/usePythonRun";
+import { ErrorExplanation } from "./ErrorExplanation";
 import { describeResult } from "../runners/messages";
 import type { RunResult } from "../runners/types";
 import { Tabs, tabPanelProps } from "./Tabs";
@@ -17,6 +19,8 @@ interface OutputPanelProps {
   entries: ConsoleEntry[];
   phase: RunPhase;
   result: RunResult | null;
+  /** Explanation of the run's error, if it had one */
+  explanation: Explanation | null;
   onSubmitInput: (line: string) => void;
   /** Content of the Tests tab */
   testResults: ReactNode;
@@ -32,6 +36,7 @@ export function OutputPanel({
   entries,
   phase,
   result,
+  explanation,
   onSubmitInput,
   testResults,
   busyLabel,
@@ -75,9 +80,12 @@ export function OutputPanel({
             </pre>
           )}
           {phase === "running" && entries.length === 0 && <p className={styles.placeholder}>Running…</p>}
-          {result?.error?.traceback && <pre className={styles.traceback}>{result.error.traceback}</pre>}
+          {phase === "idle" && result && entries.length === 0 && (
+            <p className={styles.placeholder}>Nothing was printed.</p>
+          )}
         </div>
-        {summary && (
+        {result?.error && explanation && <ErrorExplanation explanation={explanation} error={result.error} />}
+        {summary && result?.status !== "error" && (
           <p className={styles.summary} data-tone={summary.tone} role="status">
             {summary.text}
           </p>

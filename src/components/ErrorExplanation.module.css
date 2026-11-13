@@ -1,0 +1,79 @@
+.card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.65rem 0.85rem 0.75rem;
+  border-left: 3px solid var(--redpen);
+  background: var(--surface);
+  font-family: var(--font-body);
+}
+
+.label {
+  color: var(--redpen);
+}
+
+.title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.02rem;
+}
+
+.message {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.card code {
+  font-size: 0.9em;
+  padding: 0 0.25em;
+  background: var(--editor-bg);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+}
+
+.fix {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.5rem;
+  margin: 0.15rem 0 0;
+}
+
+.fixLabel {
+  font-family: var(--font-heading);
+  font-stretch: var(--label-stretch);
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  font-size: var(--label-size);
+  font-weight: 700;
+  color: var(--pass);
+}
+
+.fix code {
+  border-color: var(--pass);
+}
+
+.details {
+  margin-top: 0.25rem;
+  font-size: 0.88rem;
+}
+
+.details summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.traceback {
+  margin: 0.4rem 0 0;
+  padding: 0.5rem 0.65rem;
+  background: var(--editor-bg);
+  border: 1px solid var(--rule);
+  font-family: var(--font-code);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.lastLine {
+  background: var(--redpen-wash);
+  color: var(--redpen);
+  font-weight: 700;
+}

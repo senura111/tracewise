@@ -26,5 +26,8 @@ jobs:
       - name: Check every challenge's solution and starter
         run: npm run check:solutions
 
+      - name: Check every explainer rule against real Python errors
+        run: npm run check:explainer
+
       - name: Build
         run: npx vite build

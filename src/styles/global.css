@@ -198,6 +198,33 @@ button {
   font-size: 0.9rem;
 }
 
+/* Python code blocks, highlighted at build time (tok-* classes from Lezer) */
+.prose .tok-keyword {
+  color: var(--code-keyword);
+  font-weight: 700;
+}
+
+.prose .tok-string,
+.prose .tok-string2 {
+  color: var(--code-string);
+}
+
+.prose .tok-number,
+.prose .tok-bool,
+.prose .tok-atom {
+  color: var(--code-number);
+}
+
+.prose .tok-comment {
+  color: var(--code-comment);
+  font-style: italic;
+}
+
+.prose .tok-definition,
+.prose .tok-variableName2 {
+  color: var(--code-function);
+}
+
 .prose table {
   border-collapse: collapse;
   margin: 0 0 0.85rem;
