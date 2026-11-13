@@ -255,3 +255,15 @@ button {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* Touch screens: tap targets of at least 44px */
+@media (pointer: coarse) {
+  .btn {
+    min-height: 44px;
+  }
+
+  .btn-ghost {
+    min-height: 44px;
+    padding-inline: 0.6rem;
+  }
+}

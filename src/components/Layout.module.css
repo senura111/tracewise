@@ -20,8 +20,9 @@
 
 .header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 1.75rem;
+  gap: 0.5rem 1.75rem;
   padding: 0.8rem var(--gutter);
   background: var(--surface);
   border-bottom: 1px solid var(--rule);

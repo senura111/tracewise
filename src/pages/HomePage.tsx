@@ -1,8 +1,7 @@
 import { Link } from "react-router";
 import { challengeNumber, challenges } from "../content/challenges";
-import { LANGUAGES } from "../content/types";
+import { LANGUAGES, LANGUAGE_NAMES } from "../content/types";
 import { useProgressData } from "../progress/useProgress";
-import { LANGUAGE_NAMES } from "../runners";
 import styles from "./HomePage.module.css";
 
 type Token = [text: string, kind?: "kw" | "str" | "num" | "fn"];

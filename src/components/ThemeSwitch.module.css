@@ -1,0 +1,36 @@
+.switch {
+  display: inline-flex;
+  margin-left: auto;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius);
+}
+
+.switch button {
+  padding: 0.2rem 0.55rem;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.switch button + button {
+  border-left: 1px solid var(--control-border);
+}
+
+.switch button:hover {
+  color: var(--ink);
+}
+
+.switch button[aria-pressed="true"] {
+  background: var(--editor-active-line);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+@media (pointer: coarse) {
+  .switch button {
+    min-height: 40px;
+    padding-inline: 0.7rem;
+  }
+}

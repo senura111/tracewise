@@ -8,4 +8,4 @@ export function getRunner(language: Language): Runner {
   return language === "cpp" ? getCppRunner() : getPythonRunner();
 }
 
-export const LANGUAGE_NAMES: Record<Language, string> = { python: "Python", cpp: "C++" };
+export { LANGUAGE_NAMES } from "../content/types";

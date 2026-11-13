@@ -2,7 +2,7 @@
 title: Remove Duplicates
 difficulty: medium
 topics: [lists, strings]
-order: 11
+order: 12
 ---
 
 Your program is given one line of words separated by spaces. Some words appear more than once.

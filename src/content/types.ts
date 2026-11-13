@@ -29,3 +29,29 @@ export interface Challenge {
   tests: TestCase[];
   variants: Partial<Record<Language, LanguageVariant>>;
 }
+
+/**
+ * What the home, list and progress pages need about a challenge. The full
+ * content (descriptions, hints, walkthroughs, code) loads only when a
+ * challenge page opens.
+ */
+export interface ChallengeSummary {
+  id: string;
+  title: string;
+  difficulty: Difficulty;
+  topics: string[];
+  order: number;
+  testCount: number;
+  variants: Partial<Record<Language, { hintCount: number }>>;
+}
+
+export function summarize(challenge: Challenge): ChallengeSummary {
+  const variants: ChallengeSummary["variants"] = {};
+  for (const [language, variant] of Object.entries(challenge.variants) as [Language, LanguageVariant][]) {
+    variants[language] = { hintCount: variant.hintsHtml.length };
+  }
+  const { id, title, difficulty, topics, order, tests } = challenge;
+  return { id, title, difficulty, topics, order, testCount: tests.length, variants };
+}
+
+export const LANGUAGE_NAMES: Record<Language, string> = { python: "Python", cpp: "C++" };

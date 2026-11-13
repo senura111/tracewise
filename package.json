@@ -1,7 +1,8 @@
 {
   "name": "tracewise",
   "private": true,
-  "version": "0.0.0",
+  "license": "MIT",
+  "version": "1.0.0",
   "description": "Practise Python and C++ in the browser, with friendly explanations of your mistakes.",
   "type": "module",
   "scripts": {
@@ -12,7 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check:solutions": "tsx scripts/check-solutions.ts",
-    "check:explainer": "tsx scripts/check-explainer.ts"
+    "check:explainer": "tsx scripts/check-explainer.ts",
+    "screenshots": "tsx scripts/screenshots.ts"
   },
   "dependencies": {
     "@bjorn3/browser_wasi_shim": "0.4.2",
@@ -38,7 +40,10 @@
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.1.2",
     "@yowasp/clang": "22.0.0-git20542-10",
+    "gifenc": "1.0.3",
     "marked": "18.1.2",
+    "playwright-core": "1.64.1",
+    "pngjs": "7.0.0",
     "pyodide": "314.0.7",
     "tsx": "4.23.15",
     "typescript": "7.0.2",

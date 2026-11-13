@@ -3,6 +3,7 @@
   margin: 0 auto;
   padding: 1.25rem var(--gutter) 3rem;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.25rem;
 }
 
@@ -220,6 +221,8 @@
 /* ---- Code column --------------------------------------------------------- */
 .code {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 0.6rem;
   align-content: start;
 }

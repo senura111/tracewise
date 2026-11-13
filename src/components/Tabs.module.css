@@ -1,6 +1,9 @@
 .list {
   display: flex;
   gap: 0.25rem;
+  /* On very narrow screens the row scrolls rather than widening the page */
+  overflow-x: auto;
+  overflow-y: hidden;
   border-bottom: 1px solid var(--rule);
 }
 
@@ -27,4 +30,11 @@
 .tab[aria-selected="true"] {
   color: var(--accent);
   border-bottom-color: var(--accent);
+}
+
+@media (pointer: coarse) {
+  .tab {
+    min-height: 44px;
+    padding-inline: 0.7rem;
+  }
 }

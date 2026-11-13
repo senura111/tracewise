@@ -33,7 +33,7 @@
 
 .option {
   padding: 0.25rem 0.7rem;
-  border: 1px solid var(--rule);
+  border: 1px solid var(--control-border);
   border-radius: var(--radius);
   background: transparent;
   color: var(--ink);
@@ -65,5 +65,12 @@
   .groupLabel {
     border-right: 0;
     padding-bottom: 0;
+  }
+}
+
+@media (pointer: coarse) {
+  .option {
+    min-height: 40px;
+    padding-inline: 0.85rem;
   }
 }

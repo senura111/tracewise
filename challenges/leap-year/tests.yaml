@@ -1,0 +1,17 @@
+cases:
+  - input: "2024\n"
+    output: "2024 is a leap year\n"
+    visible: true
+  - input: "2023\n"
+    output: "2023 is not a leap year\n"
+    visible: true
+  - input: "1900\n"
+    output: "1900 is not a leap year\n"
+  - input: "2000\n"
+    output: "2000 is a leap year\n"
+  - input: "2100\n"
+    output: "2100 is not a leap year\n"
+  - input: "1996\n"
+    output: "1996 is a leap year\n"
+  - input: "2400\n"
+    output: "2400 is a leap year\n"

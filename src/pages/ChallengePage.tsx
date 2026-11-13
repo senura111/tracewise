@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
-import { challengeNumber, challenges, getChallenge } from "../content/challenges";
+import { challengeNumber, challenges, getChallengeSummary, loadChallenge } from "../content/challenges";
 import type { Challenge, Language, TestCase } from "../content/types";
 import { CodeEditor, type LineNote } from "../components/CodeEditor";
 import { explainFor, explainWarnings } from "../explain/explain";
@@ -37,12 +37,14 @@ const pad = (n: number) => String(n).padStart(2, "0");
 export function ChallengePage() {
   const { id = "" } = useParams();
   const [params, setParams] = useSearchParams();
-  const challenge = getChallenge(id);
-  if (!challenge) return <NotFoundPage message={`There's no challenge called "${id}".`} />;
+  const summary = getChallengeSummary(id);
+  if (!summary) return <NotFoundPage message={`There's no challenge called "${id}".`} />;
+  // The full content loads on demand; use() suspends until it's here (Layout shows "Loading…").
+  const challenge = use(loadChallenge(id));
 
   // The language lives in the URL (?lang=cpp); fall back to one the challenge has.
   const wanted: Language = params.get("lang") === "cpp" ? "cpp" : "python";
-  const language: Language = challenge.variants[wanted] ? wanted : challenge.variants.python ? "python" : "cpp";
+  const language: Language = summary.variants[wanted] ? wanted : summary.variants.python ? "python" : "cpp";
   const switchLanguage = (next: Language) => setParams(next === "python" ? {} : { lang: next }, { replace: true });
 
   // A new key resets all state (code, hints, tabs) when moving between challenges or languages.
@@ -393,7 +395,9 @@ function RuntimeStatus({ language, state, onRetry }: { language: Language; state
     case "failed":
       return (
         <span className={`${styles.status} ${styles.statusFailed}`} role="alert">
-          {language === "cpp" ? "The C++ compiler" : "Python"} couldn't load. Check your connection.{" "}
+          {language === "cpp"
+            ? "The C++ compiler couldn't load. Check your connection; on a phone it may need more memory than the browser allows, so try a computer."
+            : "Python couldn't load. Check your connection."}{" "}
           <button type="button" className="btn btn-ghost" onClick={onRetry}>
             Try again
           </button>

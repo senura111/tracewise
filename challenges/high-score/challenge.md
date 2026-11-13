@@ -2,7 +2,7 @@
 title: High Score
 difficulty: medium
 topics: [lists, numbers]
-order: 10
+order: 11
 ---
 
 Your program is given one line of game scores: whole numbers separated by spaces. There's always at least one score.

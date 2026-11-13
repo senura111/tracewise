@@ -1,31 +1,41 @@
 # Tracewise
 
-Practise **Python** and **C++** in your browser by solving beginner-friendly challenges. Your code runs on your own machine, with hidden tests, progressive hints, solution walkthroughs, and a friendly explainer that turns error messages into plain language.
+Practise **Python** and **C++** in your browser by solving beginner-friendly challenges. Your code runs on your own machine, with hidden tests, progressive hints, solution walkthroughs, and a friendly explainer that turns error messages into plain language. No install, no account, nothing sent to a server.
 
-> **Status:** Phase 6 is done: all 14 challenges can be solved in Python or C++, with C++ compiled in your browser by Clang. Polish and release come in Phase 7. See [PLAN.md](PLAN.md) for the roadmap.
+![Writing a solution, reading the error note, fixing it and passing every test](docs/demo.gif)
+
+| An error explained on the line | A C++ compile error, in dark mode |
+|---|---|
+| ![Python TypeError note pointing at the line where input() needs int()](docs/screenshots/python-error-note.png) | ![C++ compile error note under an if statement](docs/screenshots/cpp-compile-error.png) |
+| **Challenge list with filters** | **Progress, streak and logbook** |
+| ![Challenge list grouped by topic, with solved ticks](docs/screenshots/challenges-light.png) | ![Progress page with solved count, streak and per-topic bars](docs/screenshots/progress-light.png) |
 
 ## Features
 
-- [x] Challenge list with filters for language, topic and difficulty (filters live in the URL)
-- [x] Challenge page: problem, examples, progressive hints as margin notes, a walkthrough you can reveal
-- [x] Code editor with Python syntax highlighting and auto-indent
-- [x] Responsive: side-by-side on desktop, tabs (Problem / Code / Output) on phones
-- [x] Light and dark mode that follow your system setting
-- [x] Run Python in the browser (Pyodide in a Web Worker), with live output, interactive `input()`, a Stop button and a 5-second time limit
-- [x] 14 beginner Python challenges: variables, numbers, conditionals, loops, strings, lists, functions, dictionaries and two security puzzles
-- [x] Submit: hidden tests with ticks and crosses, expected-vs-your-output comparison, and near-miss notes (capital letters, spacing, `5.0` vs `5`, extra or missing lines)
-- [x] Friendly error explainer: 46 rules turn Python errors into plain language, shown as a red-pen note on the line that went wrong (and on the line where the fix goes)
-- [x] Syntax-highlighted code in walkthroughs and hints
-- [x] Progress saved in your browser: your code, solved marks, hints revealed, and a streak of days you submitted
-- [x] Progress page with per-topic progress, a 6-week logbook, export to a file, import and reset
-- [x] Solved ticks and a Not solved / Solved filter in the challenge list; "Continue where you left off" on the home page
-- [x] C++ support: a real Clang compiler in your browser, C++ versions of all 14 challenges, and plain-language notes for compile errors, warnings and crashes
+- **15 beginner challenges**, each solvable in **Python** or **C++**: variables, numbers, conditionals, loops, strings, lists, functions, dictionaries and two security puzzles
+- **Runs in your browser:** Python 3.14 through Pyodide, and C++20 compiled by a real Clang 22, both in Web Workers with live output, interactive input, a Stop button and a time limit
+- **Submit** checks your code against hidden tests, with ticks and crosses, expected-vs-your-output comparison, and near-miss notes (capital letters, spacing, `5.0` vs `5`, extra or missing lines)
+- **Friendly error explainer:** 74 rules (46 for Python, 28 for C++) turn error messages into plain language, shown as a red-pen note on the line that went wrong, and on the line where the fix goes
+- **Progressive hints** as margin notes, from a small nudge to nearly the answer, and a walkthrough you can reveal
+- **Progress saved in your browser:** your code, solved marks, hints used and a daily streak, with a Progress page, a 6-week logbook, and export / import to a file
+- **Filters** for language, topic, difficulty and solved status, kept in the URL so a filtered list can be shared
+- **Works on phones:** side-by-side on desktop, tabs (Problem / Code / Output) on small screens, with 44 px tap targets on touch screens
+- **Light and dark themes** that follow your system, or that you can pick yourself
+- **Accessible:** keyboard-only use (with a way to leave the editor with Esc then Tab), visible focus, a skip link, WCAG AA text contrast, and screen-reader labels for tests and notes
 
 ## Design
 
 The look is called **Drafting pad**: green-grey engineering-pad paper with a faint grid, graphite ink, a petrol-blue pen for actions, a red pen reserved for mistakes, and a highlighter for hints. Headings are set in **Archivo Expanded**, like the title block of a technical drawing. Body text and code use **Atkinson Hyperlegible Next** and **Atkinson Hyperlegible Mono**, which keep look-alike characters such as `0`/`O` and `1`/`l`/`I` distinct.
 
-All colours are CSS custom properties in [`src/styles/tokens.css`](src/styles/tokens.css), using `light-dark()` for dark mode.
+All colours are CSS custom properties in [`src/styles/tokens.css`](src/styles/tokens.css), using `light-dark()` for dark mode. The theme switch in the header stores your choice under `tracewise:theme`; a small script in `index.html` applies it before the first paint, so there's no flash of the wrong theme.
+
+## Limits
+
+- **C++ takes a while to start.** The compiler is about 18 MB to download and the browser needs 20–30 s to prepare it on each visit (it starts in the background as soon as a C++ challenge opens). Phones with little memory may not manage it at all; Python works on any modern phone.
+- **No C++ exceptions.** The WebAssembly toolchain doesn't support them, so `throw` and `try` give a clear compile error.
+- **Hidden tests are shipped to the browser.** They're practice checks, not a secure judge.
+- **Progress lives in one browser.** Clearing site data deletes it; use Export to keep a copy or move to another device.
+- **Needs a recent browser** with `SharedArrayBuffer` (current Chrome, Edge, Firefox and Safari).
 
 ## Tech stack
 
@@ -116,7 +126,10 @@ npm run preview    # serve the production build at http://localhost:4173
 npm test           # unit tests (Vitest)
 npm run check:solutions   # every reference solution passes, every starter doesn't
 npm run check:explainer   # every explainer rule matches real Python and Clang errors
+npm run screenshots       # rebuild docs/screenshots/*.png and docs/demo.gif
 ```
+
+`npm run screenshots` builds the site, serves it, and drives the Microsoft Edge already installed on Windows through `playwright-core` (no browser download), then encodes the demo GIF with `gifenc`. It takes about a minute, mostly waiting for the C++ compiler.
 
 Both checks run the real languages in Node: Python through the `pyodide` npm package and C++ through `@yowasp/clang` (a development-only package of about 105 MB), so no Python or C++ install is needed. GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the type-check, unit tests, both checks and a build on every push.
 
@@ -124,7 +137,8 @@ Both checks run the real languages in Node: Python through the `pyodide` npm pac
 
 ```
 challenges/              challenge content, one folder per challenge
-scripts/                 check-solutions.ts, check-explainer.ts, shared Pyodide harness
+docs/                    README screenshots and demo GIF (made by npm run screenshots)
+scripts/                 check-solutions.ts, check-explainer.ts, screenshots.ts, shared harnesses
 src/
   checker/               output comparison and marking (Submit)
   explain/               friendly error explanations (rules, fallbacks, editor notes)
@@ -132,7 +146,7 @@ src/
   components/            Layout, CodeEditor, HintNotes, OutputPanel, TestResults, FilterBar, Tabs, ...
   content/               challenge types and helpers (data comes from the plugin below)
   hooks/                 usePythonRun, useSubmission, useMediaQuery
-  pages/                 Home, ChallengeList, Challenge, Progress, NotFound
+  pages/                 Home, ChallengeList, Challenge, Progress, NotFound, Error
   runners/               language runtimes (Python: Pyodide worker; C++: Clang + program workers)
   styles/                design tokens and global styles
 vite-plugin-challenges.ts  reads and validates challenges/ at build time
@@ -184,6 +198,15 @@ cases:
 
 Every challenge needs at least one visible test and at least one language folder. If something is missing or invalid, `npm run dev` and `npm run build` stop with a message naming the folder and the problem. Run `npm run check:solutions` to make sure the reference solution passes and the starter doesn't. Write starters so they can't loop forever, and remember that `input()` prompts don't count as output during tests. Hidden tests are not shown in the page, but they are shipped to the browser, so treat them as practice checks rather than a secure judge.
 
+## Credits
+
+- [Pyodide](https://pyodide.org/) — CPython compiled to WebAssembly
+- [YoWASP Clang](https://yowasp.org/) — Clang and LLVM built for WebAssembly
+- [browser_wasi_shim](https://github.com/bjorn3/browser_wasi_shim) — runs the compiled C++ programs
+- [CodeMirror 6](https://codemirror.net/) and [Lezer](https://lezer.codemirror.net/) — the editor and syntax highlighting
+- [Atkinson Hyperlegible](https://www.brailleinstitute.org/freefont/) by the Braille Institute, and [Archivo](https://github.com/Omnibus-Type/Archivo) by Omnibus-Type — fonts, via Fontsource
+- [jsDelivr](https://www.jsdelivr.com/) — serves the Python and C++ runtimes
+
 ## License
 
-TBD
+[MIT](LICENSE). The fonts keep their own licence (SIL Open Font License).

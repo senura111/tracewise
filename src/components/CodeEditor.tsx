@@ -155,7 +155,7 @@ const theme = EditorView.theme({
     backgroundColor: "var(--editor-bg)",
     color: "var(--ink)",
     fontSize: "0.95rem",
-    border: "1px solid var(--rule)",
+    border: "1px solid var(--control-border)",
     borderRadius: "var(--radius)",
   },
   "&.cm-focused": { outline: "2px solid var(--focus)", outlineOffset: "2px" },

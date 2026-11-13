@@ -6,6 +6,13 @@
     <meta name="description" content="Practise Python and C++ in your browser, with friendly explanations of your mistakes." />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>Tracewise</title>
+    <script>
+      // Apply the saved theme before the page is drawn, so there's no flash of the wrong one.
+      try {
+        var theme = localStorage.getItem("tracewise:theme");
+        if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

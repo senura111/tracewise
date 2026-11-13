@@ -3,8 +3,7 @@ import { Link, useSearchParams } from "react-router";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Mark, type MarkState } from "../components/Mark";
 import { challengeNumber, challenges, groupByMainTopic } from "../content/challenges";
-import { LANGUAGES, type Challenge, type Language } from "../content/types";
-import { LANGUAGE_NAMES } from "../runners";
+import { LANGUAGES, LANGUAGE_NAMES, type ChallengeSummary as Challenge, type Language } from "../content/types";
 import type { ProgressData } from "../progress/store";
 import { bestStreak, currentStreak, logbookWeeks } from "../progress/streak";
 import { exportFileName, exportProgress, readImport, type ProgressSummary } from "../progress/transfer";
@@ -246,7 +245,7 @@ export function ProgressPage() {
                     <td>{shortDate(p.solvedAt!)}</td>
                     <td className={styles.num}>{p.attempts}</td>
                     <td className={styles.num}>
-                      {Math.min(p.hintsShown, c.variants[language]!.hintsHtml.length)}/{c.variants[language]!.hintsHtml.length}
+                      {Math.min(p.hintsShown, c.variants[language]!.hintCount)}/{c.variants[language]!.hintCount}
                     </td>
                   </tr>
                 );

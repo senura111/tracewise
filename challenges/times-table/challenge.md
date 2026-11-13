@@ -2,7 +2,7 @@
 title: Times Table
 difficulty: easy
 topics: [loops, strings]
-order: 6
+order: 7
 ---
 
 Your program is given a whole number `n`. Print its times table from 1 to 10, one line each, in this format:

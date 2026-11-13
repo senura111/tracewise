@@ -4,8 +4,16 @@
  * a red pen reserved for mistakes, and a highlighter for hints.
  *
  * Colours use light-dark(), so the element's `color-scheme` picks the palette.
- * :root follows the system setting; a manual toggle can set it later.
+ * :root follows the system setting unless the theme switch sets data-theme.
  */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
 :root {
   color-scheme: light dark;
 
@@ -31,6 +39,8 @@
   --paper: light-dark(#e4ebe3, #111613);
   --surface: light-dark(#f3f6f1, #182019);
   --rule: light-dark(#b6c5b9, #2e3c32);
+  /* Borders that show a control's shape (WCAG: at least 3:1 against its background) */
+  --control-border: light-dark(#728277, #6b7d71);
   --grid: light-dark(rgb(47 92 70 / 0.08), rgb(160 200 170 / 0.05));
   --ink: light-dark(#1c2420, #dde6de);
   --muted: light-dark(#53625a, #93a298);

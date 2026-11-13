@@ -1,5 +1,8 @@
 .wrapper {
   display: grid;
+  /* minmax(0, …) lets long lines scroll inside the editor instead of widening the page */
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 0.4rem;
   /* Lets notes size themselves to the editor's width (cqi units). */
   container-type: inline-size;

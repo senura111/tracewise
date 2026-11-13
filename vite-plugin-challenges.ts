@@ -20,10 +20,13 @@ import {
   type Language,
   type LanguageVariant,
   type TestCase,
+  summarize,
 } from "./src/content/types.ts";
 
 const VIRTUAL_ID = "virtual:challenges";
 const RESOLVED_ID = "\0" + VIRTUAL_ID;
+/** One module per challenge with its full content, so each loads on demand. */
+const CONTENT_PREFIX = "virtual:challenge/";
 const EXTENSIONS: Record<Language, string> = { python: "py", cpp: "cpp" };
 
 type Fail = (message: string) => never;
@@ -155,13 +158,27 @@ export function challenges(options: { dir?: string } = {}): Plugin {
     },
 
     resolveId(id) {
-      if (id === VIRTUAL_ID) return RESOLVED_ID;
+      if (id === VIRTUAL_ID || id.startsWith(CONTENT_PREFIX)) return "\0" + id;
     },
 
     async load(id) {
-      if (id !== RESOLVED_ID) return;
-      const all = await loadAllChallenges(root, (file) => this.addWatchFile(file));
-      return `export const challenges = ${JSON.stringify(all)};`;
+      const watch = (file: string) => this.addWatchFile(file);
+
+      // The index: summaries for every page, plus a loader per challenge.
+      if (id === RESOLVED_ID) {
+        const all = await loadAllChallenges(root, watch);
+        const loaders = all
+          .map((c) => `  ${JSON.stringify(c.id)}: () => import(${JSON.stringify(CONTENT_PREFIX + c.id)}),`)
+          .join("\n");
+        return `export const challenges = ${JSON.stringify(all.map(summarize))};\nexport const loaders = {\n${loaders}\n};`;
+      }
+
+      // One challenge's full content, loaded when its page opens.
+      if (id.startsWith("\0" + CONTENT_PREFIX)) {
+        const challengeId = id.slice(1 + CONTENT_PREFIX.length);
+        const challenge = await loadChallenge(path.join(root, challengeId), challengeId, watch);
+        return `export default ${JSON.stringify(challenge)};`;
+      }
     },
 
     configureServer(server) {

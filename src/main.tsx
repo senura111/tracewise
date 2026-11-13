@@ -8,17 +8,19 @@ import "./styles/global.css";
 import { Layout } from "./components/Layout";
 import { HomePage } from "./pages/HomePage";
 import { ChallengeListPage } from "./pages/ChallengeListPage";
+import { ErrorPage } from "./pages/ErrorPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
-import { ProgressPage } from "./pages/ProgressPage";
 
 // The challenge page carries the code editor, so it loads on demand and keeps
 // the home and list pages light.
 const ChallengePage = lazy(() => import("./pages/ChallengePage").then((m) => ({ default: m.ChallengePage })));
+const ProgressPage = lazy(() => import("./pages/ProgressPage").then((m) => ({ default: m.ProgressPage })));
 
 // Hash URLs (#/challenges/...) work on any static host without redirect rules.
 const router = createHashRouter([
   {
     element: <Layout />,
+    errorElement: <ErrorPage />,
     children: [
       { path: "/", element: <HomePage /> },
       { path: "/challenges", element: <ChallengeListPage /> },

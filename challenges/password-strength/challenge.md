@@ -2,7 +2,7 @@
 title: Password Strength
 difficulty: medium
 topics: [security, strings, conditionals]
-order: 14
+order: 15
 ---
 
 Your program is given a password (one line). Check it against four rules:

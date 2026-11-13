@@ -1,13 +1,12 @@
 import { Link, useSearchParams } from "react-router";
 import { allTopics, challengeNumber, challenges, groupByMainTopic } from "../content/challenges";
-import { DIFFICULTIES, LANGUAGES, type Difficulty, type Language } from "../content/types";
+import { DIFFICULTIES, LANGUAGES, LANGUAGE_NAMES, type Difficulty, type Language } from "../content/types";
 import { FilterBar, type FilterGroup } from "../components/FilterBar";
 import { DifficultyBadge, TopicTags } from "../components/Labels";
 import { Mark, type MarkState } from "../components/Mark";
 import { statusOf, useProgressData, type ChallengeStatus } from "../progress/useProgress";
 import styles from "./ChallengeListPage.module.css";
 
-const LANGUAGE_NAMES: Record<Language, string> = { python: "Python", cpp: "C++" };
 const capitalize = (s: string) => s[0].toUpperCase() + s.slice(1);
 
 const STATUS_FILTERS = ["unsolved", "solved"] as const;

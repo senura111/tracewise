@@ -2,7 +2,7 @@
 title: Vowel Counter
 difficulty: easy
 topics: [strings, loops]
-order: 7
+order: 8
 ---
 
 Your program is given one line of text. Count how many **vowels** it contains and print the number.

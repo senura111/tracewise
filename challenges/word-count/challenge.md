@@ -2,7 +2,7 @@
 title: Word Count
 difficulty: medium
 topics: [dictionaries, strings]
-order: 13
+order: 14
 ---
 
 Your program is given one line of lowercase words separated by spaces. Count how many times each word appears.

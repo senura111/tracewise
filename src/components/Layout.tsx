@@ -1,5 +1,6 @@
 import { Suspense, type MouseEvent } from "react";
 import { Link, NavLink, Outlet, ScrollRestoration } from "react-router";
+import { ThemeSwitch } from "./ThemeSwitch";
 import styles from "./Layout.module.css";
 
 export function Layout() {
@@ -20,6 +21,7 @@ export function Layout() {
             Progress
           </NavLink>
         </nav>
+        <ThemeSwitch />
       </header>
       <main id="main" tabIndex={-1} className={styles.main}>
         <Suspense fallback={<p className={styles.loading}>Loading…</p>}>

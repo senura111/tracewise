@@ -2,7 +2,7 @@
 title: Temperature Converter
 difficulty: easy
 topics: [functions, numbers]
-order: 12
+order: 13
 ---
 
 Finish the **function** `celsius_to_fahrenheit` so that it takes a temperature in degrees Celsius and **returns** it in degrees Fahrenheit.

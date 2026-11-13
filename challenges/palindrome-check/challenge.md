@@ -2,7 +2,7 @@
 title: Palindrome Check
 difficulty: medium
 topics: [strings]
-order: 8
+order: 9
 ---
 
 A **palindrome** reads the same forwards and backwards, like `racecar`.
