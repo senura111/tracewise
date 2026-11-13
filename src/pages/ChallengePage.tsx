@@ -12,6 +12,7 @@ import { Tabs, tabPanelProps } from "../components/Tabs";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { usePythonRun } from "../hooks/usePythonRun";
 import { useSubmission } from "../hooks/useSubmission";
+import { progressStore, useChallengeProgress } from "../progress/useProgress";
 import { TestResults } from "../components/TestResults";
 import type { RuntimeState } from "../runners/types";
 import { NotFoundPage } from "./NotFoundPage";
@@ -41,14 +42,26 @@ export function ChallengePage() {
   return <Workspace key={challenge.id} challenge={challenge} />;
 }
 
+const LANGUAGE = "python";
+
 function Workspace({ challenge }: { challenge: Challenge }) {
   const variant = challenge.variants.python!;
   // Below 64rem the three sections become tabs instead of side-by-side columns.
   const narrow = useMediaQuery("(max-width: 63.99rem)");
   const [section, setSection] = useState<Section>("problem");
   const [sideTab, setSideTab] = useState<SideTab>("statement");
-  const [walkthroughShown, setWalkthroughShown] = useState(false);
-  const [code, setCode] = useState(variant.starter);
+
+  // ---- Saved progress ------------------------------------------------------------
+  const progress = useChallengeProgress(challenge.id, LANGUAGE);
+  const solved = progress.solvedAt !== undefined;
+  // Once solved, the walkthrough is no longer a spoiler.
+  const walkthroughShown = progress.walkthroughShown || solved;
+  const [code, setCode] = useState(() => progressStore.get(challenge.id, LANGUAGE).code ?? variant.starter);
+
+  useEffect(() => {
+    progressStore.markOpened(challenge.id, LANGUAGE);
+  }, [challenge.id]);
+
   const [resultsTab, setResultsTab] = useState<ResultsTab>("output");
   const python = usePythonRun();
   const submission = useSubmission(challenge.tests);
@@ -89,6 +102,7 @@ function Workspace({ challenge }: { challenge: Challenge }) {
   const changeCode = (value: string) => {
     setCode(value);
     setNotes([]);
+    progressStore.saveCode(challenge.id, LANGUAGE, value, variant.starter);
   };
 
   const run = () => {
@@ -103,8 +117,9 @@ function Workspace({ challenge }: { challenge: Challenge }) {
     setResultsTab("tests");
     if (narrow) setSection("output");
     const report = await submission.submit(code);
-    // Once solved, the walkthrough is no longer a spoiler.
-    if (report?.solved) setWalkthroughShown(true);
+    if (report && !report.cancelled) {
+      progressStore.recordSubmission(challenge.id, LANGUAGE, report.passed, report.total);
+    }
   };
 
   const showWalkthrough = () => {
@@ -132,7 +147,10 @@ function Workspace({ challenge }: { challenge: Challenge }) {
     narrow ? tabPanelProps("section", id, section) : { "aria-label": SECTIONS.find((s) => s.id === id)!.label };
 
   const reset = () => {
-    if (code === variant.starter || window.confirm("Reset the editor to the starter code? Your changes will be lost.")) {
+    if (
+      code === variant.starter ||
+      window.confirm("Reset the editor to the starter code? Your saved changes will be lost (a solved challenge stays solved).")
+    ) {
       setCode(variant.starter);
     }
   };
@@ -151,6 +169,11 @@ function Workspace({ challenge }: { challenge: Challenge }) {
           <h1 className={styles.h1}>{challenge.title}</h1>
           <DifficultyBadge difficulty={challenge.difficulty} />
           <TopicTags topics={challenge.topics} />
+          {solved && (
+            <span className={styles.solvedStamp} title={`Solved on ${new Date(progress.solvedAt!).toLocaleDateString()}`}>
+              Solved
+            </span>
+          )}
         </div>
       </header>
 
@@ -175,7 +198,11 @@ function Workspace({ challenge }: { challenge: Challenge }) {
               <Examples tests={challenge.tests.filter((t) => t.visible)} />
             </div>
             <aside className={styles.margin} aria-label="Hints">
-              <HintNotes hints={variant.hintsHtml} />
+              <HintNotes
+                hints={variant.hintsHtml}
+                shown={progress.hintsShown}
+                onShowMore={(count) => progressStore.setHintsShown(challenge.id, LANGUAGE, count)}
+              />
             </aside>
           </div>
 
@@ -189,7 +216,11 @@ function Workspace({ challenge }: { challenge: Challenge }) {
                   This explains a full solution step by step. Try it yourself and use the hints first, or reveal it
                   whenever you're ready.
                 </p>
-                <button type="button" className="btn btn-secondary" onClick={() => setWalkthroughShown(true)}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => progressStore.setWalkthroughShown(challenge.id, LANGUAGE)}
+                >
                   Reveal the walkthrough
                 </button>
               </div>

@@ -16,6 +16,9 @@ export function Layout() {
           <NavLink to="/challenges" className={({ isActive }) => (isActive ? styles.active : undefined)}>
             Challenges
           </NavLink>
+          <NavLink to="/progress" className={({ isActive }) => (isActive ? styles.active : undefined)}>
+            Progress
+          </NavLink>
         </nav>
       </header>
       <main id="main" tabIndex={-1} className={styles.main}>

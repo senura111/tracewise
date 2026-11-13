@@ -9,6 +9,7 @@ import { Layout } from "./components/Layout";
 import { HomePage } from "./pages/HomePage";
 import { ChallengeListPage } from "./pages/ChallengeListPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { ProgressPage } from "./pages/ProgressPage";
 
 // The challenge page carries the code editor, so it loads on demand and keeps
 // the home and list pages light.
@@ -22,6 +23,7 @@ const router = createHashRouter([
       { path: "/", element: <HomePage /> },
       { path: "/challenges", element: <ChallengeListPage /> },
       { path: "/challenges/:id", element: <ChallengePage /> },
+      { path: "/progress", element: <ProgressPage /> },
       { path: "*", element: <NotFoundPage /> },
     ],
   },

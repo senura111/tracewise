@@ -32,6 +32,19 @@
   margin-right: 0.25rem;
 }
 
+.solvedStamp {
+  font-family: var(--font-heading);
+  font-stretch: 125%;
+  font-weight: 800;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--pass);
+  border: 2.5px double var(--pass);
+  padding: 0.05rem 0.5rem;
+  transform: rotate(-4deg);
+}
+
 /* Mobile/tablet section tabs */
 .sectionTabs {
   position: sticky;

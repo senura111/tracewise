@@ -3,11 +3,21 @@ import { allTopics, challengeNumber, challenges, groupByMainTopic } from "../con
 import { DIFFICULTIES, LANGUAGES, type Difficulty, type Language } from "../content/types";
 import { FilterBar, type FilterGroup } from "../components/FilterBar";
 import { DifficultyBadge, TopicTags } from "../components/Labels";
-import { Mark } from "../components/Mark";
+import { Mark, type MarkState } from "../components/Mark";
+import { statusOf, useProgressData, type ChallengeStatus } from "../progress/useProgress";
 import styles from "./ChallengeListPage.module.css";
 
 const LANGUAGE_NAMES: Record<Language, string> = { python: "Python", cpp: "C++" };
 const capitalize = (s: string) => s[0].toUpperCase() + s.slice(1);
+
+const STATUS_FILTERS = ["unsolved", "solved"] as const;
+type StatusFilter = (typeof STATUS_FILTERS)[number];
+
+const STATUS_MARKS: Record<ChallengeStatus, { state: MarkState; label: string }> = {
+  solved: { state: "pass", label: "Solved" },
+  started: { state: "started", label: "Started, not solved yet" },
+  new: { state: "blank", label: "Not started" },
+};
 
 export function ChallengeListPage() {
   // Filters live in the URL, so a filtered list can be bookmarked or shared.
@@ -19,9 +29,20 @@ export function ChallengeListPage() {
     ? (params.get("difficulty") as Difficulty)
     : null;
   const topic = allTopics.includes(params.get("topic") ?? "") ? params.get("topic") : null;
+  const status = STATUS_FILTERS.includes(params.get("status") as StatusFilter)
+    ? (params.get("status") as StatusFilter)
+    : null;
 
-  const visible = challenges.filter(
-    (c) => c.variants[language] && (!difficulty || c.difficulty === difficulty) && (!topic || c.topics.includes(topic)),
+  const progress = useProgressData();
+  const statusOfChallenge = (id: string) => statusOf(progress.challenges[id]?.[language]);
+  const available = challenges.filter((c) => c.variants[language]);
+  const solvedCount = available.filter((c) => statusOfChallenge(c.id) === "solved").length;
+
+  const visible = available.filter(
+    (c) =>
+      (!difficulty || c.difficulty === difficulty) &&
+      (!topic || c.topics.includes(topic)) &&
+      (!status || (status === "solved") === (statusOfChallenge(c.id) === "solved")),
   );
   const groups = groupByMainTopic(visible);
 
@@ -55,6 +76,16 @@ export function ChallengeListPage() {
       selected: topic,
       options: [{ value: null, label: "All" }, ...allTopics.map((t) => ({ value: t, label: capitalize(t) }))],
     },
+    {
+      key: "status",
+      label: "Status",
+      selected: status,
+      options: [
+        { value: null, label: "All" },
+        { value: "unsolved", label: "Not solved" },
+        { value: "solved", label: "Solved" },
+      ],
+    },
   ];
 
   return (
@@ -63,7 +94,10 @@ export function ChallengeListPage() {
       <header className={styles.head}>
         <h1 className={styles.h1}>Challenges</h1>
         <p className={styles.count} aria-live="polite">
-          {visible.length} of {challenges.length} shown
+          <strong>
+            {solvedCount} of {available.length} solved
+          </strong>{" "}
+          · {visible.length} shown
         </p>
       </header>
 
@@ -94,7 +128,7 @@ export function ChallengeListPage() {
                     <TopicTags topics={c.topics} />
                   </div>
                   <DifficultyBadge difficulty={c.difficulty} />
-                  <Mark state="blank" label="Not solved yet" />
+                  <Mark {...STATUS_MARKS[statusOfChallenge(c.id)]} />
                 </li>
               ))}
             </ol>

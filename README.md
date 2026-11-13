@@ -2,7 +2,7 @@
 
 Practise **Python** and **C++** in your browser by solving beginner-friendly challenges. Your code runs on your own machine, with hidden tests, progressive hints, solution walkthroughs, and a friendly explainer that turns error messages into plain language.
 
-> **Status:** Phase 4 is done: errors are explained in plain language, right on the line that went wrong. Saving progress comes in Phase 5. See [PLAN.md](PLAN.md) for the roadmap.
+> **Status:** Phase 5 is done: progress and code are saved in your browser, with a Progress page, streaks and export/import. C++ support comes in Phase 6. See [PLAN.md](PLAN.md) for the roadmap.
 
 ## Features
 
@@ -16,7 +16,9 @@ Practise **Python** and **C++** in your browser by solving beginner-friendly cha
 - [x] Submit: hidden tests with ticks and crosses, expected-vs-your-output comparison, and near-miss notes (capital letters, spacing, `5.0` vs `5`, extra or missing lines)
 - [x] Friendly error explainer: 46 rules turn Python errors into plain language, shown as a red-pen note on the line that went wrong (and on the line where the fix goes)
 - [x] Syntax-highlighted code in walkthroughs and hints
-- [ ] Progress and saved code stored in your browser
+- [x] Progress saved in your browser: your code, solved marks, hints revealed, and a streak of days you submitted
+- [x] Progress page with per-topic progress, a 6-week logbook, export to a file, import and reset
+- [x] Solved ticks and a Not solved / Solved filter in the challenge list; "Continue where you left off" on the home page
 - [ ] C++ support
 
 ## Design
@@ -55,6 +57,18 @@ Code runs in a Web Worker ([`src/runners/python/`](src/runners/python)), so a sl
 Submit runs the program once per test in test mode, with a 2-second limit per test. If a test times out, the remaining tests are skipped, so an infinite loop costs 2 seconds rather than 2 seconds per test.
 
 Output is compared line by line ([`src/checker/compare.ts`](src/checker/compare.ts)). Only differences a beginner can't see are forgiven: line-ending style, spaces at the end of a line, and blank lines at the very end. When a test fails, the comparison looks for common near misses and explains them in plain language. Failing examples show expected vs actual output; failing hidden tests say what went wrong, with a button to reveal the details.
+
+## How progress is saved
+
+Everything is stored in your browser's `localStorage` under one versioned key, `tracewise:v1` ([`src/progress/store.ts`](src/progress/store.ts)). There are no accounts and nothing is sent anywhere.
+
+- **Code** is saved a moment after you stop typing, and straight away when you leave the page. Code that matches the starter isn't stored.
+- **Solved** means every test passed once; it stays solved even if you change the code later.
+- **Streak** counts days in a row (in your time zone) on which you submitted at least once.
+- **Several tabs** stay in sync through the browser's `storage` event.
+- **If storage is blocked** (some private windows), everything still works for that visit, and the Progress page says progress won't be kept.
+- **Unreadable saved data** is moved to a backup key instead of being deleted, and the site starts fresh.
+- **Export** downloads a JSON file; **Import** checks a file and shows what it contains before replacing current progress.
 
 ## How errors are explained
 
@@ -103,10 +117,11 @@ scripts/                 check-solutions.ts, check-explainer.ts, shared Pyodide 
 src/
   checker/               output comparison and marking (Submit)
   explain/               friendly error explanations (rules, fallbacks, editor notes)
+  progress/              saved progress: store, streaks, export/import
   components/            Layout, CodeEditor, HintNotes, OutputPanel, TestResults, FilterBar, Tabs, ...
   content/               challenge types and helpers (data comes from the plugin below)
   hooks/                 usePythonRun, useSubmission, useMediaQuery
-  pages/                 Home, ChallengeList, Challenge, NotFound
+  pages/                 Home, ChallengeList, Challenge, Progress, NotFound
   runners/               language runtimes (Python: Pyodide worker)
   styles/                design tokens and global styles
 vite-plugin-challenges.ts  reads and validates challenges/ at build time

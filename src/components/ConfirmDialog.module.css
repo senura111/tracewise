@@ -1,0 +1,35 @@
+.dialog {
+  width: min(28rem, calc(100vw - 2rem));
+  padding: 1.25rem 1.35rem;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
+  border-top: 4px solid var(--redpen);
+  border-radius: var(--radius);
+  box-shadow: 6px 6px 0 var(--rule);
+}
+
+.dialog::backdrop {
+  background: rgb(0 0 0 / 0.35);
+}
+
+.title {
+  font-size: 1.05rem;
+  text-transform: uppercase;
+}
+
+.body {
+  margin: 0.75rem 0 1.25rem;
+  line-height: 1.5;
+}
+
+.body p {
+  margin: 0 0 0.5rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}

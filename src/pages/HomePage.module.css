@@ -48,6 +48,36 @@
   gap: 0.75rem;
 }
 
+.resume {
+  display: grid;
+  gap: 0.15rem;
+  margin-top: 1.5rem;
+  max-width: 26rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.resume:hover {
+  border-color: var(--accent);
+}
+
+.resume .label {
+  color: var(--accent);
+}
+
+.resumeTitle {
+  font-size: 1.1rem;
+}
+
+.resumeMeta {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
 /* ---- Specimen ------------------------------------------------------------ */
 .specimen {
   margin: 0;

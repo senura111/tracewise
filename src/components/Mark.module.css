@@ -1,6 +1,7 @@
 .pass,
 .fail,
-.blank {
+.blank,
+.started {
   width: 1.35rem;
   height: 1.35rem;
   flex: none;
@@ -22,4 +23,14 @@
   stroke: var(--rule);
   stroke-width: 1.5;
   stroke-dasharray: 3 3;
+}
+
+.started {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.started .fill {
+  fill: color-mix(in srgb, var(--accent) 35%, transparent);
+  stroke: none;
 }

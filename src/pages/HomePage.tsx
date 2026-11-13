@@ -1,5 +1,6 @@
 import { Link } from "react-router";
-import { challenges } from "../content/challenges";
+import { challengeNumber, challenges } from "../content/challenges";
+import { useProgressData } from "../progress/useProgress";
 import styles from "./HomePage.module.css";
 
 type Token = [text: string, kind?: "kw" | "str" | "num" | "fn"];
@@ -25,6 +26,13 @@ const STEPS = [
 export function HomePage() {
   const first = challenges[0];
   const pythonCount = challenges.filter((c) => c.variants.python).length;
+  const progress = useProgressData();
+
+  // The most recently opened challenge that isn't solved yet.
+  const resume = challenges
+    .map((c) => ({ challenge: c, p: progress.challenges[c.id]?.python }))
+    .filter(({ p }) => p?.lastOpened && !p.solvedAt)
+    .sort((a, b) => b.p!.lastOpened!.localeCompare(a.p!.lastOpened!))[0];
 
   return (
     <div className={styles.page}>
@@ -50,6 +58,20 @@ export function HomePage() {
               Browse challenges
             </Link>
           </div>
+          {resume && (
+            <Link to={`/challenges/${resume.challenge.id}`} className={styles.resume}>
+              <span className="label">Continue where you left off</span>
+              <strong className={styles.resumeTitle}>{resume.challenge.title} →</strong>
+              <span className={styles.resumeMeta}>
+                No. {String(challengeNumber(resume.challenge)).padStart(2, "0")}
+                {resume.p!.attempts > 0
+                  ? ` · ${resume.p!.attempts} ${resume.p!.attempts === 1 ? "attempt" : "attempts"}`
+                  : resume.p!.code !== undefined
+                    ? " · code saved"
+                    : ""}
+              </span>
+            </Link>
+          )}
         </div>
 
         <figure className={styles.specimen}>
